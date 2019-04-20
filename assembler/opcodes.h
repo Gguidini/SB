@@ -1,3 +1,12 @@
+// This header file defines the INstruction class and 
+// table_of_instructions() function.
+//
+//  Instruction class defines an instruction, with
+//  OPCODE, NAME, OPERANDS, SIZE
+//
+//  table_of_instructions() returns an unordered_map
+//  with all the instructions indexed by NAME.
+
 #ifndef OPCODES_H
 #define OPCODES_H
 
