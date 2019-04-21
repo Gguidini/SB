@@ -22,6 +22,9 @@ class Instruction {
     int SIZE;
 
 public:
+    Instruction(){
+    }
+
     Instruction(int opcode, std::string name, int operands, int size){
         OPCODE = opcode;
         NAME = name;

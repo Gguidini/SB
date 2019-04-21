@@ -1,8 +1,12 @@
 // Main do projeto.
 // TODO: Atualizar estes cometários.
 #include <stdio.h>
+#include <iostream>
+#include <fstream>
 
-#include "colors.h"
+#include "../lib/colors.h"
+
+#include "pre_processor.cpp"
 
 void showHelp(int args){
     printf("./tradutor <assembly file>\n");
@@ -16,11 +20,17 @@ void showHelp(int args){
 }
 
 int main(int argc, char **argv){
+    // Verify that number of arguments is correct.
     if(argc !=  2){
         // If no input files were given, or too many files.
         showHelp(argc);
         return 0;
     } 
-
-    // it's ok to procede.
+    // Try to open input file. If file not found, abort.
+    std::ifstream fd (argv[1]);
+    if(!fd.is_open()){
+        printf(RED "[Fatal Error]" RESET " Input file not found.\n");
+        return 0;
+    }
+    // Runs pre_processor
 }
