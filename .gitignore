@@ -2,5 +2,7 @@
 .vscode/*
 .vscode/
 
-# executable file
+# executable files
 assembler/tradutor
+*/tradutor
+*/a.out
