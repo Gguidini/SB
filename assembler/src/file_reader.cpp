@@ -23,6 +23,7 @@ public:
         __size = 0;
         __buffer.clear();
         __is_loaded = false;
+        FILE_REF = "";
     }
 
     File_reader(std::string file_name){
@@ -40,6 +41,8 @@ public:
 
     bool is_loaded() {return __is_loaded;}
 
+    std::string references() {return FILE_REF;}
+
     // Returns if all lines have been read.
     // That happens if __current_line = __size.
     bool done() {return __size == __current_line;}
@@ -49,6 +52,10 @@ public:
 // The file is stored in the __buffer.
 // Lines that are only comments, or empty, are not stored.
 bool File_reader::load_file() {
+    if(FILE_REF == ""){
+        // FIXME: Throw error "Trying to load file with no reference"
+        return false;
+    }
     std::ifstream fd (FILE_REF);
     if(!fd.is_open()){
         // FIXME: Maybe return an error, or throw an exception?
