@@ -75,6 +75,11 @@ bool File_reader::load_file() {
             continue;
         }
         // Removes comments.
+        // Check if line starts at a comment. Ignore.
+        if(line[start] == ';'){
+            line_idx++;
+            continue;
+        }
         // A comment starts with a ';' and goes till the end of the line.
         size_t comment_start = line.find(";", start);
         if(comment_start != std::string::npos){
