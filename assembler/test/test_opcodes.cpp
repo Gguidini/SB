@@ -1,7 +1,10 @@
 // This file has Unit Tests for the opcodes.h lib.
 // Tests are created using the Catch framework (header file)
 
+#ifndef CATCH_CONFIG_MAIN   // Only one test file can contain CATCH_CONFIG_MAIN
 #define CATCH_CONFIG_MAIN   // So catch will provide the main function
+#endif
+
 #include "catch_framework.hpp"
 // Lib to test
 #include "../lib/opcodes.h"
