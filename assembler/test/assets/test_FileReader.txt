@@ -1,7 +1,7 @@
 THIS LINE SHOULD GO COMPLETE.
 
         
-This lines number must be 4.
+This line's number must be 4.
            Check for trimming right.
 Check for trimming left.            
 Removes comments? ; This should go away.
