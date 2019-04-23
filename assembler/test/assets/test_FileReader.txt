@@ -1,0 +1,10 @@
+THIS LINE SHOULD GO COMPLETE.
+
+        
+This lines number must be 4.
+           Check for trimming right.
+Check for trimming left.            
+Removes comments? ; This should go away.
+; This should not exist.
+     ; This line should not exist as well.
+    The number of this line must be 10.
