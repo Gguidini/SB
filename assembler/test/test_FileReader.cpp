@@ -30,10 +30,9 @@ TEST_CASE("Test that Class creation is ok", "[file_reader]") {
     }
 }
 
-TEST_CASE("Testing load_file function", "[file_reader") {
+TEST_CASE("Testing load_file function", "[file_reader]") {
 
-
-    SECTION("Check if load_file fails for no reference and wrong reference."){
+    SECTION("Check if load_file loads properly."){
         File_reader reader = File_reader();
         // Loading file with no reference - FAIL
         REQUIRE_FALSE(reader.load_file());
@@ -54,4 +53,42 @@ TEST_CASE("Testing load_file function", "[file_reader") {
         REQUIRE(reader.load_file());
         REQUIRE(reader.is_loaded() == true);
     }
+}
+
+TEST_CASE("Testing if load_file() annotates lines correctly", "[file_reader]") {
+    // Creater reader. Loads file.
+    File_reader reader = File_reader("assets/test_FileReader.txt");
+    reader.load_file();
+    // Making sure it's ok to proceed
+    REQUIRE(reader.is_loaded() == true);
+    REQUIRE(reader.size() > 0);
+    REQUIRE(reader.done() == false);
+    // Tests first line.
+    std::string line;
+    line = reader.next_line();
+    REQUIRE(line == "THIS LINE SHOULD GO COMPLETE.");
+    REQUIRE(reader.current_line_number() == 1);
+    // Tests second line - blank line compression
+    line = reader.next_line();
+    REQUIRE(line == "This line's number must be 4.");
+    REQUIRE(reader.current_line_number() == 4);
+    // Third line - Trimming left
+    line = reader.next_line();
+    REQUIRE(line == "Check for trimming left.");
+    REQUIRE(line.size() == 24);
+    REQUIRE(reader.current_line_number() == 5);
+    // Fourth line - Trimming right
+    line = reader.next_line();
+    REQUIRE(line == "Check for trimming right.");
+    REQUIRE(line.size() == 25);
+    REQUIRE(reader.current_line_number() == 6);
+    // Fifth line - removes comments
+    line = reader.next_line();
+    REQUIRE(line == "Removes comments? ");
+    // Remove lines that are only comments
+    line = reader.next_line();
+    REQUIRE(line == "The number of this line must be 10.");
+    REQUIRE(reader.current_line_number() == 10);
+    // Now reading must be done
+    REQUIRE(reader.done() == true);
 }
