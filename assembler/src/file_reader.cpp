@@ -9,6 +9,8 @@
 #include <iostream>
 #include <fstream>
 
+#include "../lib/colors.h"
+
 class File_reader {
     // Internal buffer to store (line, line_number) pairs.
     std::vector<std::pair<std::string, int>> __buffer;
@@ -19,15 +21,14 @@ class File_reader {
 
 public:
     File_reader() {
-        __current_line = 0;
+        __current_line = -1;    // Starts at -1 so that first next_line() = 0
         __size = 0;
         __buffer.clear();
         __is_loaded = false;
         FILE_REF = "";
     }
 
-    File_reader(std::string file_name){
-        File_reader();
+    File_reader(std::string file_name) : File_reader() {
         FILE_REF = file_name;
     }
 
@@ -44,8 +45,11 @@ public:
     std::string references() {return FILE_REF;}
 
     // Returns if all lines have been read.
-    // That happens if __current_line = __size.
-    bool done() {return __size == __current_line;}
+    // That happens if __current_line = __size - 1.
+    // And a file is loaded
+    bool done() {
+        return ((__size - 1) == __current_line && __is_loaded);
+    }
 };
 
 // Reads file using the FILE_REF name.
@@ -54,11 +58,14 @@ public:
 bool File_reader::load_file() {
     if(FILE_REF == ""){
         // FIXME: Throw error "Trying to load file with no reference"
+        printf(RED "[Error] " RESET "Reference is blank\n");
         return false;
     }
+
     std::ifstream fd (FILE_REF);
     if(!fd.is_open()){
         // FIXME: Maybe return an error, or throw an exception?
+        printf(RED "[Error] " RESET "File %s didn't open\n", FILE_REF.c_str());
         return false;
     }
     // FIXME: Initially assuming that file is small enough to be held in memory.
@@ -90,23 +97,24 @@ bool File_reader::load_file() {
         // A comment starts with a ';' and goes till the end of the line.
         size_t comment_start = line.find(";", start);
         if(comment_start != std::string::npos){
-            end = comment_start;
+            end = comment_start - 1;
         }
 
+        line = line.substr(start, end-start+1);
         // Whatever is left, is relevant for the program.
         __buffer.push_back(std::make_pair(line, line_idx));
         line_idx++;
     }
 
     fd.close();
-    __size = line_idx;
-    __is_loaded = true;
+    this->__size = __buffer.size();
+    this->__is_loaded = true;
     return true;
 }
 
 // Saves file ref internally before executing load_file
 bool File_reader::load_file(std::string file_path){
-    FILE_REF = file_path;
+    this->FILE_REF = file_path;
     return load_file();
 }
 
@@ -118,6 +126,7 @@ int File_reader::current_line_number(){
 // Returns the next line,
 // And moves the line counter.
 std::string File_reader::next_line(){
+    // FIXME: Throw error when trying to get next line that does not exist
     __current_line++;
     return __buffer[__current_line].first;
 }
