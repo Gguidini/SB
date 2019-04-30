@@ -34,14 +34,7 @@ public:
     std::ifstream& get_file_pointer(){return __file_pointer;}
     bool get_done(){return __done;}
     // Run
-    std::vector<std::string> run(){
-        // FIXME: Remove this implementation an code correct one outside class declaration
-        std::vector<std::string> aux;
-        aux.push_back("Thiago");
-        aux.push_back("Veras");
-        aux.push_back("Machado");
-        return aux;
-    };
+    std::vector<std::string> run();
     // FIXME: Remove this implementation an code correct one outside class declaration
     std::string generate_output() {return "SB2019-1";}
 };
@@ -59,6 +52,48 @@ Pre_processor::Pre_processor(std::string input_name){
     __output_name = input_name.substr(0, input_name.size() - 4) + ".pre";
     __done = false;
     __file_pointer.open(input_name);
+}
+
+std::vector<std::string> Pre_processor::run(){
+    // TODO: Finish all steps
+    std::vector<std::string> aux;
+    std::string line;
+
+    while(getline(__file_pointer,line)){
+        char x;
+        bool valid_line = false;
+        std::string final_line = "";
+        for(int i = 0; i < (int)line.size(); i++){
+            // current char
+            char c = line[i];
+            // Erase comments
+            if(c == ';'){
+                break;
+            }
+            // Erase mutiples spaces and ending space
+            else if(c == ' '){
+                // Jump all spaces until end or next valid char
+                while(i < (int)line.size() and line[i] == ' ')i++;
+                // If has a valid char that is diff from comment, add space                
+                if(i < (int)line.size()){   
+                    if(line[i] == ';') break;
+                    final_line += " ";
+                }
+                // Get current char diff from space
+                i--;
+            }
+            // Add normal char
+            else if( c >= '!' and c <= '~' ){
+                final_line += c;
+                valid_line = true;
+            }
+        }
+        if(valid_line){
+            aux.push_back(final_line);
+        }
+    }
+    __done = true;
+    return aux;
 }
 
 #endif
