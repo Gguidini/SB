@@ -13,7 +13,7 @@
 
 class File_reader {
     // Internal buffer to store (line, line_number) pairs.
-    std::vector<std::pair<std::string, int>> __buffer;
+    std::vector<std::string> __buffer;
     std::string FILE_REF;
     int __current_line;
     int __size;
@@ -70,12 +70,10 @@ bool File_reader::load_file() {
     }
     // FIXME: Initially assuming that file is small enough to be held in memory.
     // Later, we should implement ways to load only parts of the file, if it's too big.
-    int line_idx = 1;
     std::string line;
     while(getline(fd, line)){
         // Removes empty lines
         if(line == ""){
-            line_idx++;
             continue;
         }
         int start = 0, end = line.size() - 1;
@@ -85,13 +83,11 @@ bool File_reader::load_file() {
         while(line[end] == ' ' && end > start) end--;
         // If there's nothing left, the line was empty
         if(start == end){
-            line_idx++;
             continue;
         }
         // Removes comments.
         // Check if line starts at a comment. Ignore.
         if(line[start] == ';'){
-            line_idx++;
             continue;
         }
         // A comment starts with a ';' and goes till the end of the line.
@@ -102,8 +98,7 @@ bool File_reader::load_file() {
 
         line = line.substr(start, end-start+1);
         // Whatever is left, is relevant for the program.
-        __buffer.push_back(std::make_pair(line, line_idx));
-        line_idx++;
+        __buffer.push_back(line);
     }
 
     fd.close();
@@ -119,16 +114,13 @@ bool File_reader::load_file(std::string file_path){
 }
 
 // Returns the reference of the current line in the original file.
-int File_reader::current_line_number(){
-    return __buffer[__current_line].second;
-}
 
 // Returns the next line,
 // And moves the line counter.
 std::string File_reader::next_line(){
     // FIXME: Throw error when trying to get next line that does not exist
     __current_line++;
-    return __buffer[__current_line].first;
+    return __buffer[__current_line];
 }
 
 #endif
