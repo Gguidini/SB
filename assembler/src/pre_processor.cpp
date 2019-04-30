@@ -35,12 +35,14 @@ public:
     bool get_done(){return __done;}
     // Run
     std::vector<std::string> run(){
+        // FIXME: Remove this implementation an code correct one outside class declaration
         std::vector<std::string> aux;
         aux.push_back("Thiago");
         aux.push_back("Veras");
         aux.push_back("Machado");
         return aux;
     };
+    // FIXME: Remove this implementation an code correct one outside class declaration
     std::string generate_output() {return "SB2019-1";}
 };
 
