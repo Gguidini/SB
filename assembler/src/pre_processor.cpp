@@ -37,7 +37,7 @@ public:
     std::vector<std::string> run();
     // FIXME: Remove this implementation an code correct one outside class declaration
     std::string generate_output() {return "SB2019-1";}
-    std::string filter_line(std::string&line);    
+    std::string _filter_line(std::string&line);    
 };
 
 Pre_processor::Pre_processor(){
@@ -55,7 +55,7 @@ Pre_processor::Pre_processor(std::string input_name){
     __file_pointer.open(input_name);
 }
 
-std::string Pre_processor::filter_line(std::string &line){
+std::string Pre_processor::_filter_line(std::string &line){
     std::string final_line = "";
     for(int i = 0; i < (int)line.size(); i++){
         // current char
@@ -91,13 +91,15 @@ std::vector<std::string> Pre_processor::run(){
 
     while(getline(__file_pointer,line)){
 
-        std::string processed_line = filter_line(line);
+        std::string processed_line = _filter_line(line);
+        
+        if(processed_line == "") continue;
         
         // TODO : EXPAND MACROS
         // TODO : SOLVE IFS
         // TODO : SOLVE EQU
 
-        if(processed_line != "") processed_file.push_back(processed_line);
+        processed_file.push_back(processed_line);
     }
     __done = true;
     return processed_file;
