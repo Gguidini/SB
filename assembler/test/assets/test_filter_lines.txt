@@ -1,0 +1,8 @@
+
+; linha vazia
+     ; linha vazia
+LABEL:
+coisas sem sentido
+LABEL: EQU
+IF IF IF
+LABEL: MACRO

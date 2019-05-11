@@ -12,6 +12,12 @@
 #define TEXT 1
 #define DATA 0
 
+// defines token symbols
+#define LABEL 0
+#define MACRO 1
+#define EQU 2
+#define IF 3
+#define ENDMACRO 5
 // The pre processor class.
 // Receives the original file to process,
 // Outputs a new file, with expanded macros.
@@ -37,7 +43,7 @@ public:
     std::vector<std::string> run();
     // FIXME: Remove this implementation an code correct one outside class declaration
     std::string generate_output() {return "SB2019-1";}
-    std::string _filter_line(std::string&line);    
+    std::vector<std::pair<std::string, int>> _filter_line(std::string&line);    
 };
 
 Pre_processor::Pre_processor(){
@@ -55,8 +61,11 @@ Pre_processor::Pre_processor(std::string input_name){
     __file_pointer.open(input_name);
 }
 
-std::string Pre_processor::_filter_line(std::string &line){
-    std::string final_line = "";
+std::vector<std::pair<std::string, int>> Pre_processor::_filter_line(std::string &line){
+    // Return value
+    std::vector<std::pair<std::string, int>> next_tokens;
+    // Construction of return value
+    std::string curr_token_str = "";
     for(int i = 0; i < (int)line.size(); i++){
         // current char
         char c = line[i];
@@ -66,22 +75,70 @@ std::string Pre_processor::_filter_line(std::string &line){
         }
         // Erase mutiples spaces and ending space
         else if(c == ' '){
+            // Check if curr token is any of the preprocessing directives
+            // And this space is pointing to the end of it
+            std::string test = "";
+            for (char c: curr_token_str){
+                test += toupper(c); // curr_token_str UPPERCASE
+            } 
+                    
+            if(test == "MACRO"){
+                next_tokens.push_back(std::make_pair(curr_token_str, MACRO));
+                curr_token_str = "";
+            } else if(test == "EQU"){
+                next_tokens.push_back(std::make_pair(curr_token_str, EQU));
+                curr_token_str = "";
+            } else if(test == "IF"){
+                next_tokens.push_back(std::make_pair(curr_token_str, IF));
+                curr_token_str = "";
+            } else if(test == "ENDMACRO"){
+                next_tokens.push_back(std::make_pair(curr_token_str, ENDMACRO));
+                curr_token_str = "";
+            } else if(test.back() != ',' && test != ""){
+                // COPY A, B. The ',' is to check if we are in a COPY situation.
+                // Otherwise, this is an unidentified token
+                next_tokens.push_back(std::make_pair(curr_token_str, -1));
+                curr_token_str = "";
+            }
             // Jump all spaces until end or next valid char
-            while(i < (int)line.size() and line[i] == ' ')i++;
+            while(i < (int)line.size() and line[i] == ' ') i++;
             // If has a valid char that is diff from comment, add space                
             if(i < (int)line.size()){   
                 if(line[i] == ';') break;
-                final_line += " ";
             }
             // Get current char diff from space
             i--;
         }
+        // Catch labels and push that token.
+        // Flush curr line and continue
+        else if(c == ':'){
+            next_tokens.push_back(std::make_pair(curr_token_str, LABEL));
+            curr_token_str = "";
+            continue;
+        }
         // Add normal char
         else if( c >= '!' and c <= '~' ){
-            final_line += c;
+            curr_token_str += c;
         }
     }
-    return final_line;
+    
+    // Check if last token is any of the directives
+    std::string test = "";
+    for (char c: curr_token_str){
+        test += toupper(c); // curr_token_str UPPERCASE
+    } 
+      
+    if(test == "MACRO"){
+        next_tokens.push_back(std::make_pair(curr_token_str, MACRO));
+    } else if(test == "EQU"){
+        next_tokens.push_back(std::make_pair(curr_token_str, EQU));
+    } else if(test == "IF"){
+        next_tokens.push_back(std::make_pair(curr_token_str, IF));
+    } else if(test != ""){
+        next_tokens.push_back(std::make_pair(curr_token_str, -1));
+    }
+
+    return next_tokens;
 }
 
 std::vector<std::string> Pre_processor::run(){
@@ -91,14 +148,21 @@ std::vector<std::string> Pre_processor::run(){
 
     while(getline(__file_pointer,line)){
 
-        std::string processed_line = _filter_line(line);
+        std::vector<std::pair<std::string, int>> tokens = _filter_line(line);
         
-        if(processed_line == "") continue;
+        if(tokens.size() == 0) continue;    // Empty line
         
         // TODO : EXPAND MACROS
         // TODO : SOLVE IFS
         // TODO : SOLVE EQU
 
+        // TODO: Talvez devemos considerar retornar direto o vetor de tokens
+        // Transforma o vetor de tokens em string
+        int s = tokens.size();
+        std::string processed_line = tokens[0].first;
+        for(int i = 1; i < s; i++){
+            processed_line += " " + tokens[i].first;
+        }
         processed_file.push_back(processed_line);
     }
     __done = true;
