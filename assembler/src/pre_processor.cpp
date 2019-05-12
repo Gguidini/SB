@@ -7,6 +7,7 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
+#include <map>
 
 // defines for Sections
 #define TEXT 1
@@ -22,12 +23,15 @@
 // Receives the original file to process,
 // Outputs a new file, with expanded macros.
 class Pre_processor {
-    
+    // General information
     std::vector<std::string> __buffer;  // Saves lines after processing
     std::string __input_name;      // Name of input file
     std::string __output_name;           // Name of output file
     std::ifstream __file_pointer;             // Input file pointer
     bool __done;                        // If processed the entire file
+
+    // EQU values
+    std::map<std::string, int> __equs;
 
 public:
     // Constructors
@@ -147,21 +151,56 @@ std::vector<std::string> Pre_processor::run(){
     std::string line;
 
     while(getline(__file_pointer,line)){
+        bool has_equ = false;
+        bool has_label = false;
 
         std::vector<std::pair<std::string, int>> tokens = _filter_line(line);
-        
         if(tokens.size() == 0) continue;    // Empty line
         
+        for(auto & pair : tokens){
+            if(pair.second == EQU){
+                has_equ = true;
+            }
+            if(pair.second == LABEL){
+                has_label = true;
+            }
+            if(pair.second == -1){
+                if(__equs.find(pair.first) != __equs.end()){
+                    // Expand EQU
+                    pair.first = std::to_string(__equs[pair.first]);
+                }
+            }
+        }
+
         // TODO : EXPAND MACROS
         // TODO : SOLVE IFS
-        // TODO : SOLVE EQU
+        // EXPAND EQU
+        if(has_equ){
+            if( tokens.size() == 3 && 
+                tokens[0].second == LABEL &&
+                tokens[1].second == EQU &&
+                tokens[2].second == -1){
+                // EQU usada corretamente
+                __equs[tokens[0].first] = stoi(tokens[2].first);
+                // EQU def doesn't go for processing
+                continue;
+            } else {
+                // FIXME: Tratamento de erros para EQU
+            }
 
+        }
         // TODO: Talvez devemos considerar retornar direto o vetor de tokens
         // Transforma o vetor de tokens em string
         int s = tokens.size();
         std::string processed_line = tokens[0].first;
+        if(tokens[0].second == LABEL){
+            processed_line += ":";
+        }
         for(int i = 1; i < s; i++){
             processed_line += " " + tokens[i].first;
+            if(tokens[i].second == LABEL){
+                processed_line += ":";
+            }
         }
         processed_file.push_back(processed_line);
     }

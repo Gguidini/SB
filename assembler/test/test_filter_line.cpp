@@ -62,3 +62,31 @@ TEST_CASE("Filter lines correctly", "[pre_processor]"){
     REQUIRE(token[0].second == LABEL);
     REQUIRE(token[1].second == MACRO);
 }
+
+TEST_CASE("Testing filter lines for EQU"){
+    Pre_processor proc("assets/test_PreProcessor_equ.txt");
+    std::ifstream test_file("assets/test_PreProcessor_equ.txt");
+    std::vector<std::pair<std::string, int>> token;
+    std::string line;
+    // 1st line - EQU define
+    getline(test_file, line);
+    token = proc._filter_line(line);
+    REQUIRE(token.size() == 3);
+    REQUIRE(token[0] == std::make_pair(std::string("TESTE"), LABEL));
+    REQUIRE(token[1] == std::make_pair(std::string("EQU"), EQU));
+    REQUIRE(token[2] == std::make_pair(std::string("1"), -1));
+    // 2nd line - EQU define
+    getline(test_file, line);
+    token = proc._filter_line(line);
+    REQUIRE(token.size() == 3);
+    REQUIRE(token[0] == std::make_pair(std::string("OUTRO"), LABEL));
+    REQUIRE(token[1] == std::make_pair(std::string("EQU"), EQU));
+    REQUIRE(token[2] == std::make_pair(std::string("10"), -1));
+    // 3rd line - EQU use
+    getline(test_file, line);
+    token = proc._filter_line(line);
+    REQUIRE(token.size() == 3);
+    REQUIRE(token[0] == std::make_pair(std::string("N"), LABEL));
+    REQUIRE(token[1] == std::make_pair(std::string("SPACE"), -1));
+    REQUIRE(token[2] == std::make_pair(std::string("TESTE"), -1));
+}

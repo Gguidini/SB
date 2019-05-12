@@ -166,7 +166,7 @@ Pre_processor proc("assets/test_PreProcessor_macro_parameters.txt");
 }
 
 TEST_CASE("Test EQU processing", "[directives]") {
-    Pre_processor proc("assets/test_PreProcess_equ.txt");
+    Pre_processor proc("assets/test_PreProcessor_equ.txt");
     std::vector<std::string> lines = proc.run();
     std::vector<std::string> expected{
         "N: SPACE 1",
