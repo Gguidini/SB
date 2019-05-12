@@ -46,7 +46,7 @@ public:
     // Run
     std::vector<std::string> run();
     // FIXME: Remove this implementation an code correct one outside class declaration
-    std::string generate_output() {return "SB2019-1";}
+    std::string generate_output();
     std::vector<std::pair<std::string, int>> _filter_line(std::string&line);    
 };
 
@@ -63,6 +63,18 @@ Pre_processor::Pre_processor(std::string input_name){
     __output_name = input_name.substr(0, input_name.size() - 4) + ".pre";
     __done = false;
     __file_pointer.open(input_name);
+}
+
+std::string Pre_processor::generate_output(){
+    if(!__done){
+        throw("Tentando gerar output sem pre-processar o arquivo\n");
+    }
+    std::ofstream fd(__output_name);
+    for(std::string str : __buffer){
+        fd << str << "\n";
+    }
+    fd.close();
+    return __output_name;
 }
 
 std::vector<std::pair<std::string, int>> Pre_processor::_filter_line(std::string &line){
@@ -205,6 +217,7 @@ std::vector<std::string> Pre_processor::run(){
         processed_file.push_back(processed_line);
     }
     __done = true;
+    __buffer = processed_file;
     return processed_file;
 }
 
