@@ -78,7 +78,7 @@ TEST_CASE("Testing class creation", "[pre_processor]") {
 }
 
 TEST_CASE("Generates output file", "[pre_processor]"){
-    Pre_processor proc("assets/test_PreProcessor_output_creation.txt");
+    Pre_processor proc("assets/test_PreProcessor_comment.txt");
     proc.run();
     std::string out_name = proc.generate_output();
     std::ifstream out(out_name);
