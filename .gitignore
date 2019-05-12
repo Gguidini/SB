@@ -7,3 +7,6 @@ assembler/tradutor
 */tradutor
 */a.out
 assembler/test/a.out
+
+# test framework
+assembler/test/catch_framework.hpp
