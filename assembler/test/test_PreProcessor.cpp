@@ -126,16 +126,17 @@ TEST_CASE("Test MACRO processing", "[directives]") {
     SECTION("Macros WITHOUT parameters"){
         Pre_processor proc("assets/test_PreProcessor_macro.txt");
         std::vector<std::string> lines = proc.run();
+        proc.generate_output();
         std::vector<std::string> expected{
             "HELLOW WORLD",
-            "COPY A, B",
-            "COPY A, TEMP",
-            "COPY B, A",
-            "COPY TEMP, B",
+            "COPY X,Y",
+            "COPY A,TEMP",
+            "COPY B,A",
+            "COPY TEMP,B",
             "GOOD BYE WORLD",
-            "COPY A, TEMP",
-            "COPY B, A",
-            "COPY TEMP, B"
+            "COPY A,TEMP",
+            "COPY B,A",
+            "COPY TEMP,B"
         };
         REQUIRE(lines.size() == expected.size());
         for(int i = 0; i < (int)expected.size(); i++){
@@ -144,7 +145,7 @@ TEST_CASE("Test MACRO processing", "[directives]") {
     }
 
     SECTION("Macros WITH parameters"){
-Pre_processor proc("assets/test_PreProcessor_macro_parameters.txt");
+        Pre_processor proc("assets/test_PreProcessor_macro_parameters.txt");
         std::vector<std::string> lines = proc.run();
         std::vector<std::string> expected{
             "HELLOW WORLD",

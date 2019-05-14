@@ -70,4 +70,19 @@ std::unordered_map<std::string, Instruction> table_of_instructions(){
     // return table
     return table;
 }
+
+bool is_opcode(std::string test){
+    std::string _test = "";
+    for (char c: test){
+        _test += toupper(c); // curr_token_str UPPERCASE
+    } 
+    std::vector<std::string> ops = {
+        "ADD", "SUB", "MULT", "DIV", "JMP", "JMPN",
+        "JMPZ", "COPY", "LOAD", "STORE", "INPUT", "OUTPUT", "STOP"};
+    for(std::string op : ops){
+        if(_test == op) return true;
+    }
+    return false;
+}
+
 #endif

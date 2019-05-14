@@ -8,10 +8,11 @@
 #include <fstream>
 #include <vector>
 #include <map>
+#include "../lib/opcodes.h"
 
 // defines for Sections
-#define TEXT 1
-#define DATA 0
+//#define TEXT 1
+//#define DATA 0
 
 // defines token symbols
 #define LABEL 0
@@ -19,6 +20,8 @@
 #define EQU 2
 #define IF 3
 #define ENDMACRO 5
+#define OP 4
+#define ENDL 11
 // The pre processor class.
 // Receives the original file to process,
 // Outputs a new file, with expanded macros.
@@ -28,7 +31,14 @@ class Pre_processor {
     std::string __input_name;      // Name of input file
     std::string __output_name;           // Name of output file
     std::ifstream __file_pointer;             // Input file pointer
+    int __macro_id;
     bool __done;                        // If processed the entire file
+    
+    // All available instructions
+    std::unordered_map<std::string, Instruction> intructions;
+    // Macro values
+    std::unordered_map<std::string, std::pair<int,int> > __MNT;
+    std::unordered_map<int, std::vector<std::pair<std::string, int>>> __MDT;
 
     // EQU values
     std::map<std::string, int> __equs;
@@ -55,6 +65,7 @@ Pre_processor::Pre_processor(){
     __input_name = "";
     __output_name = "";
     __done = false;
+    __macro_id = 0;
 }
 
 Pre_processor::Pre_processor(std::string input_name){
@@ -69,9 +80,14 @@ std::string Pre_processor::generate_output(){
     if(!__done){
         throw("Tentando gerar output sem pre-processar o arquivo\n");
     }
+    
     std::ofstream fd(__output_name);
+    if(!fd.is_open()){
+        throw("Algum erro aconteceu tentando gerar o arquivo de saída\n");
+    }
+    std::cout << "CRIEI O ARQUIVO " << __output_name << " E ABERTO = " << fd.is_open() << std::endl;
     for(std::string str : __buffer){
-        fd << str << "\n";
+        fd << str;
     }
     fd.close();
     return __output_name;
@@ -144,7 +160,7 @@ std::vector<std::pair<std::string, int>> Pre_processor::_filter_line(std::string
         test += toupper(c); // curr_token_str UPPERCASE
     } 
       
-    if(test == "MACRO"){
+    if(test == "MACRO" or test == "ENDMACRO"){
         next_tokens.push_back(std::make_pair(curr_token_str, MACRO));
     } else if(test == "EQU"){
         next_tokens.push_back(std::make_pair(curr_token_str, EQU));
@@ -165,26 +181,65 @@ std::vector<std::string> Pre_processor::run(){
     while(getline(__file_pointer,line)){
         bool has_equ = false;
         bool has_label = false;
-
+        bool has_macro = false;
+        /*
+        Add flag "linha cheia"
+        while(!linha cheia){
+            Pega tokens
+        }
+          Linha cheia --> Tem uma diretiva || Tem uma operação 
+        
+        */
         std::vector<std::pair<std::string, int>> tokens = _filter_line(line);
+        tokens.push_back(std::make_pair("\n", 11));
         if(tokens.size() == 0) continue;    // Empty line
         
-        for(auto & pair : tokens){
+        for(int i = 0; i < (int)tokens.size(); i++){
+            std::pair<std::string, int>& pair = tokens[i];
             if(pair.second == EQU){
                 has_equ = true;
             }
             if(pair.second == LABEL){
                 has_label = true;
             }
+            if(pair.second == MACRO){
+                has_macro = true;
+            }
             if(pair.second == -1){
                 if(__equs.find(pair.first) != __equs.end()){
                     // Expand EQU
                     pair.first = std::to_string(__equs[pair.first]);
+                }else if(__MNT.count(pair.first)){
+                    int label_id = __MNT[pair.first].second;
+                    tokens[i] = __MDT[label_id][0];
+                    //std::cout << "ADD O " << __MDT[label_id][0].first << " No lugar do " << tokens[i].first << " e o prox eh " << tokens[i+1].first << std::endl;
+                    tokens.insert(tokens.begin() + i + 1, __MDT[label_id].begin() + 1, __MDT[label_id].end());
                 }
             }
         }
-
         // TODO : EXPAND MACROS
+        if(has_macro){
+            int parameters = 0;
+            if(tokens.size() == 3){
+                parameters = 1;
+                for(int i = 0; i < tokens[2].first.size(); i++) if(tokens[2].first[i] == ',') parameters++;
+            }
+            __MNT[tokens[0].first] = std::make_pair(parameters, ++__macro_id);
+            getline(__file_pointer,line);
+            tokens = _filter_line(line);
+            while(tokens[0].first != "ENDMACRO"){
+                if(tokens[(int)tokens.size()-1].second != ENDL){
+                    tokens.push_back(std::make_pair("\n", 11));
+                }
+                __MDT[__macro_id].insert(__MDT[__macro_id].end(), tokens.begin(), tokens.end());
+                getline(__file_pointer,line);
+                tokens = _filter_line(line);
+            }
+            continue;
+        }
+
+
+
         // TODO : SOLVE IFS
         // EXPAND EQU
         if(has_equ){
@@ -209,12 +264,24 @@ std::vector<std::string> Pre_processor::run(){
             processed_line += ":";
         }
         for(int i = 1; i < s; i++){
-            processed_line += " " + tokens[i].first;
+            if(tokens[i].second == ENDL or tokens[i-1].second == ENDL){
+                processed_line += tokens[i].first;
+            }
+            else{
+                processed_line += " " + tokens[i].first;
+            }
+
             if(tokens[i].second == LABEL){
                 processed_line += ":";
             }
         }
         processed_file.push_back(processed_line);
+    }
+
+    if(__MDT[__MNT["TROCA"].second].size() > 0){
+        std::cout << "printando size MDT final troca que tem id = " << __MNT["TROCA"].second << " : " << __MDT[__MNT["TROCA"].second].size() << std::endl;
+        for(auto x : __MDT[__MNT["TROCA"].second]) std::cout << "|" << x.first << " ";
+        std::cout << std::endl;
     }
     __done = true;
     __buffer = processed_file;
