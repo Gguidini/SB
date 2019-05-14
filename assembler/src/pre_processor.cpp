@@ -160,8 +160,10 @@ std::vector<std::pair<std::string, int>> Pre_processor::_filter_line(std::string
         test += toupper(c); // curr_token_str UPPERCASE
     } 
       
-    if(test == "MACRO" or test == "ENDMACRO"){
+    if(test == "MACRO"){
         next_tokens.push_back(std::make_pair(curr_token_str, MACRO));
+    } else if(test == "ENDMACRO"){
+        next_tokens.push_back(std::make_pair(curr_token_str, ENDMACRO));
     } else if(test == "EQU"){
         next_tokens.push_back(std::make_pair(curr_token_str, EQU));
     } else if(test == "IF"){
@@ -227,7 +229,7 @@ std::vector<std::string> Pre_processor::run(){
             __MNT[tokens[0].first] = std::make_pair(parameters, ++__macro_id);
             getline(__file_pointer,line);
             tokens = _filter_line(line);
-            while(tokens[0].first != "ENDMACRO"){
+            while(tokens[0].second != ENDMACRO){
                 if(tokens[(int)tokens.size()-1].second != ENDL){
                     tokens.push_back(std::make_pair("\n", 11));
                 }
@@ -235,6 +237,7 @@ std::vector<std::string> Pre_processor::run(){
                 getline(__file_pointer,line);
                 tokens = _filter_line(line);
             }
+            __MDT[__macro_id].pop_back();
             continue;
         }
 
