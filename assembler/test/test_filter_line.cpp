@@ -61,6 +61,14 @@ TEST_CASE("Filter lines correctly", "[pre_processor]"){
     REQUIRE(token.size() == 2);
     REQUIRE(token[0].second == LABEL);
     REQUIRE(token[1].second == MACRO);
+    // 9th line - Opcodes
+    getline(test_file, line);
+    token = proc._filter_line(line);
+    REQUIRE(token.size() == 6);
+    for(std::pair<std::string, int> p : token){
+        REQUIRE(p.second == OP);
+    }
+
 }
 
 TEST_CASE("Testing filter lines for EQU"){

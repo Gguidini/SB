@@ -6,3 +6,4 @@ coisas sem sentido
 LABEL: EQU
 IF IF IF
 LABEL: MACRO
+ADD SUB JMPP STOP DIV STORE
