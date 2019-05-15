@@ -80,7 +80,7 @@ Pre_processor::Pre_processor(std::string input_name){
     __input_name = input_name;
     // Verifica se extensão é .txt
     if(__input_name.substr(__input_name.size() - 4, 4) != ".txt"){
-        throw "Arquivo " + __input_name + " não possui extensão correta";
+        throw "Arquivo " + __input_name + " não possui extensão correta (.txt)";
     } 
     __file_pointer.open(input_name);
     // Verifica que conseguiu abrir o arquivo
