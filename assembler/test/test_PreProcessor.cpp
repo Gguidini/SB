@@ -104,7 +104,8 @@ TEST_CASE("Orignal file parsing test", "[pre_processor]") {
 
     SECTION("Removes empty lines") {
         Pre_processor proc("assets/test_PreProcessor_empty_spaces.txt");
-        std::vector<std::string> lines = proc.run();
+        std::vector<std::string> lines;
+        proc.run();
         std::string out_name = proc.generate_output();
         lines = read_file(out_name);
         std::vector<std::string> expected{
@@ -122,7 +123,8 @@ TEST_CASE("Orignal file parsing test", "[pre_processor]") {
 
     SECTION("Removes comments and comment lines") {
         Pre_processor proc("assets/test_PreProcessor_comment.txt");
-        std::vector<std::string> lines = proc.run();
+        std::vector<std::string> lines;
+        proc.run();
         std::string out_name = proc.generate_output();
         lines = read_file(out_name);
         std::vector<std::string> expected{
@@ -143,7 +145,8 @@ TEST_CASE("Test MACRO processing", "[directives]") {
 
     SECTION("Macros WITHOUT parameters"){
         Pre_processor proc("assets/test_PreProcessor_macro.txt");
-        std::vector<std::string> lines = proc.run();
+        std::vector<std::string> lines;
+        proc.run();
         std::string out_name = proc.generate_output();
         lines = read_file(out_name);
         std::vector<std::string> expected{
@@ -165,7 +168,8 @@ TEST_CASE("Test MACRO processing", "[directives]") {
 
     SECTION("Macros WITH parameters"){
         Pre_processor proc("assets/test_PreProcessor_macro_parameters.txt");
-        std::vector<std::string> lines = proc.run();
+        std::vector<std::string> lines;
+        proc.run();
         std::string out_name = proc.generate_output();
         lines = read_file(out_name);
         std::vector<std::string> expected{
@@ -189,7 +193,8 @@ TEST_CASE("Test MACRO processing", "[directives]") {
 
 TEST_CASE("Test EQU processing", "[directives]") {
     Pre_processor proc("assets/test_PreProcessor_equ.txt");
-    std::vector<std::string> lines = proc.run();
+    std::vector<std::string> lines;
+    proc.run();
     std::string out_name = proc.generate_output();
     lines = read_file(out_name);
     std::vector<std::string> expected{
