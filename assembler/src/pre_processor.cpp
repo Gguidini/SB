@@ -9,6 +9,7 @@
 #include <vector>
 #include <map>
 #include "../lib/opcodes.h"
+#include "errors.cpp"
 
 // defines for Sections
 //#define TEXT 1
@@ -34,6 +35,7 @@ class Pre_processor {
     std::string __output_name;          // Name of output file
     std::ifstream __file_pointer;       // Input file pointer
     bool __done;                        // If processed the entire file
+    std::vector<Error> __errs;
     
     // Macro values
     int __macro_id;
@@ -52,6 +54,7 @@ public:
     std::string get_input_name() {return __input_name;}
     std::string get_output_name() {return __output_name;}
     std::ifstream& get_file_pointer(){return __file_pointer;}
+    std::vector<Error> get_errors(){return __errs;}
     bool get_done(){return __done;}
     // Run
     std::vector<std::string> run();
@@ -69,6 +72,7 @@ Pre_processor::Pre_processor(){
     __output_name = "";
     __done = false;
     __macro_id = 0;
+    __errs = std::vector<Error>();
 }
 
 // Pre_processor com arquivo de referência.
@@ -77,6 +81,8 @@ Pre_processor::Pre_processor(std::string input_name){
     __buffer = std::vector<std::string>();
     __output_name = input_name.substr(0, input_name.size() - 4) + ".pre";
     __done = false;
+    __errs = std::vector<Error>();
+    __macro_id = 0;
     __input_name = input_name;
     // Verifica se extensão é .txt
     if(__input_name.substr(__input_name.size() - 4, 4) != ".txt"){
