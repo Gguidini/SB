@@ -205,6 +205,7 @@ std::vector<std::string> Pre_processor::run(){
     while(getline(__file_pointer,line)){
         bool has_equ = false;
         bool has_macro = false;
+        bool has_if = false;
         /*
         Add flag "linha cheia"
         while(!linha cheia){
@@ -223,6 +224,8 @@ std::vector<std::string> Pre_processor::run(){
                 has_equ = true;
             } else if(pair.second == MACRO){
                 has_macro = true;
+            } else if(pair.second == IF){
+                has_if = true;
             } else if(pair.second == -1){
                 // Prováveis LABELS em uso
                 if(__equs.find(pair.first) != __equs.end()){
@@ -257,9 +260,25 @@ std::vector<std::string> Pre_processor::run(){
             continue;
         }
 
-        // TODO : SOLVE IFS
-        // EXPAND EQU
+        // EXPAND IF - IF <value> <\n>
+        if(has_if){
+            // FIXME: Verificar se argumento do IF é um número
+            if( tokens.size() == 3){
+                if(tokens[1].first != "0"){
+                    // Inclui próxima linha, mas não esta
+                    continue;
+                } else {
+                    // Não inclui nem esta nem a próxima linha
+                    getline(__file_pointer,line);
+                    continue;
+                }
+            } else {
+                // TODO: IF errors
+            }
+        }
+        // EXPAND EQU - LABEL: EQU VALUE <\n>
         if(has_equ){
+            // FIXME: Verificar se argumento do EQU é um número
             if( tokens.size() == 4 && 
                 tokens[0].second == LABEL &&
                 tokens[1].second == EQU &&
@@ -269,7 +288,7 @@ std::vector<std::string> Pre_processor::run(){
                 // EQU def doesn't go for processing
                 continue;
             } else {
-                // FIXME: Tratamento de erros para EQU
+                // TODO: Tratamento de erros para EQU
             }
 
         }

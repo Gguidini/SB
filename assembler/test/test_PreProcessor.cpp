@@ -206,7 +206,8 @@ TEST_CASE("Test EQU processing", "[directives]") {
 
 TEST_CASE("Test IF processing", "[directives]") {
     Pre_processor proc("assets/test_PreProcessor_if.txt"); 
-    std::vector<std::string> lines = proc.run();
+    std::vector<std::string> lines;
+    proc.run();
     std::string out_name = proc.generate_output();
     lines = read_file(out_name);
     std::vector<std::string> expected{

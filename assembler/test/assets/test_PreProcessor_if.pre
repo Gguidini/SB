@@ -1,6 +1,3 @@
 This line is ok
-IF 1
 This line has to be in the program
-IF 0
-This line CANNOT be in the program
 This line is ok
