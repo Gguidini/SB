@@ -89,4 +89,12 @@ TEST_CASE("Testing filter lines for EQU"){
     REQUIRE(token[0] == std::make_pair(std::string("N"), LABEL));
     REQUIRE(token[1] == std::make_pair(std::string("SPACE"), -1));
     REQUIRE(token[2] == std::make_pair(std::string("TESTE"), -1));
+    // 4th line - EQU use
+    getline(test_file, line);
+    token = proc._filter_line(line);
+    REQUIRE(token.size() == 4);
+    REQUIRE(token[0] == std::make_pair(std::string("ADD"), OP));
+    REQUIRE(token[1] == std::make_pair(std::string("N"), -1));
+    REQUIRE(token[2] == std::make_pair(std::string("+"), -1));
+    REQUIRE(token[3] == std::make_pair(std::string("TESTE"), -1));
 }

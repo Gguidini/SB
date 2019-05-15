@@ -141,6 +141,9 @@ std::vector<std::pair<std::string, int>> Pre_processor::_filter_line(std::string
             } else if(test == "ENDMACRO"){
                 next_tokens.push_back(std::make_pair(curr_token_str, ENDMACRO));
                 curr_token_str = "";
+            } else if(is_opcode(test)){
+                next_tokens.push_back(std::make_pair(curr_token_str, OP));
+                curr_token_str = "";
             } else if(test.back() != ',' && test != ""){
                 // COPY A, B. The ',' is to check if we are in a COPY situation.
                 // Otherwise, this is an unidentified token
@@ -183,6 +186,8 @@ std::vector<std::pair<std::string, int>> Pre_processor::_filter_line(std::string
         next_tokens.push_back(std::make_pair(curr_token_str, EQU));
     } else if(test == "IF"){
         next_tokens.push_back(std::make_pair(curr_token_str, IF));
+    } else if(is_opcode(test)){
+        next_tokens.push_back(std::make_pair(curr_token_str, OP));
     } else if(test != ""){
         next_tokens.push_back(std::make_pair(curr_token_str, -1));
     }
