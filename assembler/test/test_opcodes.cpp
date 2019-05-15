@@ -56,3 +56,19 @@ TEST_CASE("The table of instructions is OK", "[instruction]") {
         }
     }
 }
+
+TEST_CASE("Identifies opcode strings", "[instruction]"){
+    std::vector<std::string> tests = {
+        "ADD", "SUB", "MULT", "DIV", "JMP", "JMPN", "JMPP",
+        "JMPZ", "COPY", "LOAD", "STORE", "INPUT", "OUTPUT",
+        "STOP", "NAO", "FALSE"
+    };
+
+    for(int i = 0; i < 15; i++){
+        if(i < 14){
+            REQUIRE(is_opcode(tests[i]) == true);
+        } else {
+            REQUIRE(is_opcode(tests[i]) == false);
+        }
+    }
+}

@@ -73,7 +73,7 @@ std::unordered_map<std::string, Instruction> table_of_instructions(){
 
 bool is_opcode(std::string test){
     std::vector<std::string> ops = {
-        "ADD", "SUB", "MULT", "DIV", "JMP", "JMPN",
+        "ADD", "SUB", "MULT", "DIV", "JMP", "JMPN", "JMPP",
         "JMPZ", "COPY", "LOAD", "STORE", "INPUT", "OUTPUT", "STOP"};
     for(std::string op : ops){
         if(test == op) return true;
