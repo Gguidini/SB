@@ -68,7 +68,12 @@ TEST_CASE("Filter lines correctly", "[pre_processor]"){
     for(std::pair<std::string, int> p : token){
         REQUIRE(p.second == OP);
     }
-
+    // 10th line - COPY
+    getline(test_file, line);
+    token = proc._filter_line(line);
+    REQUIRE(token.size() == 2);
+    REQUIRE(token[0].second == OP);
+    REQUIRE(token[1].first == "A,B");
 }
 
 TEST_CASE("Testing filter lines for EQU"){

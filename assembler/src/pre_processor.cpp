@@ -9,6 +9,7 @@
 #include <vector>
 #include <map>
 #include "../lib/opcodes.h"
+#include "../lib/utils.h"
 #include "errors.cpp"
 
 // defines for Sections
@@ -23,6 +24,36 @@
 #define ENDMACRO 5
 #define OP 4
 #define ENDL 11
+
+typedef std::pair<std::string, int> Token;
+
+// create_tagged_token analisa uma string para ver se é um token reconhecido ou não.
+// Retorna true se o token for válido (não-vazio), false se for inválido.
+// Salva o token criado na variável tok
+bool create_tagged_token(std::string str, Token& tok){
+
+    // COPY A, B - Put all arguments in the same token
+    if(str.back() == ',' || str == ""){
+        return false;
+    }
+
+    std::string test = Utils::to_upper(str);
+    if(test == "MACRO"){
+        tok = std::make_pair(str, MACRO);
+    } else if(test == "EQU"){
+        tok = std::make_pair(str, EQU);
+    } else if(test == "IF"){
+        tok = std::make_pair(str, IF);
+    } else if(test == "ENDMACRO"){
+        tok = std::make_pair(str, ENDMACRO);
+    } else if(is_opcode(test)){
+        tok = std::make_pair(str, OP);
+    } else {
+        tok = std::make_pair(str, -1);
+    }
+
+    return true;
+}
 
 // The pre processor class.
 // Receives the original file to process,
@@ -40,10 +71,14 @@ class Pre_processor {
     // Macro values
     int __macro_id;
     std::unordered_map<std::string, std::pair<int,int> > __MNT;
-    std::unordered_map<int, std::vector<std::pair<std::string, int>>> __MDT;
+    std::unordered_map<int, std::vector<Token>> __MDT;
 
     // EQU values
     std::map<std::string, int> __equs;
+    void _expand_equs(std::vector<Token> curr_tokens);
+
+    // Expand IFs
+    void _expand_ifs(std::vector<Token> curr_tokens);
 
 public:
     // Constructors
@@ -61,7 +96,7 @@ public:
     // Generate output
     std::string generate_output();
     // Internal use (public for testing purposes)
-    std::vector<std::pair<std::string, int>> _filter_line(std::string&line);    
+    std::vector<Token> _filter_line(std::string&line);    
 };
 
 // Pre_processor sem arquivo de referência.
@@ -121,9 +156,9 @@ std::string Pre_processor::generate_output(){
 // Classificada como publica para podermos testá-la mais facilmente.
 // Recebe uma linha de um arquivo e a separa em um vetor de tokens.
 // Cada token é um string e uma anotação daquela string.
-std::vector<std::pair<std::string, int>> Pre_processor::_filter_line(std::string &line){
+std::vector<Token> Pre_processor::_filter_line(std::string &line){
     // Return value
-    std::vector<std::pair<std::string, int>> next_tokens;
+    std::vector<Token> next_tokens;
     // Construction of return value
     std::string curr_token_str = "";
     for(int i = 0; i < (int)line.size(); i++){
@@ -135,33 +170,13 @@ std::vector<std::pair<std::string, int>> Pre_processor::_filter_line(std::string
         }
         // Erase mutiples spaces and ending space
         // Separates tokens (space is used to separate tokens)
-        else if(c == ' '){
+        else if(c == ' ' || c == '\t'){
             // Check if curr token is any of the preprocessing directives
             // And this space is pointing to the end of it
-            std::string test = "";
-            for (char c: curr_token_str){
-                test += toupper(c); // curr_token_str UPPERCASE
-            } 
-                    
-            if(test == "MACRO"){
-                next_tokens.push_back(std::make_pair(curr_token_str, MACRO));
-                curr_token_str = "";
-            } else if(test == "EQU"){
-                next_tokens.push_back(std::make_pair(curr_token_str, EQU));
-                curr_token_str = "";
-            } else if(test == "IF"){
-                next_tokens.push_back(std::make_pair(curr_token_str, IF));
-                curr_token_str = "";
-            } else if(test == "ENDMACRO"){
-                next_tokens.push_back(std::make_pair(curr_token_str, ENDMACRO));
-                curr_token_str = "";
-            } else if(is_opcode(test)){
-                next_tokens.push_back(std::make_pair(curr_token_str, OP));
-                curr_token_str = "";
-            } else if(test.back() != ',' && test != ""){
-                // COPY A, B. The ',' is to check if we are in a COPY situation.
-                // Otherwise, this is an unidentified token
-                next_tokens.push_back(std::make_pair(curr_token_str, -1));
+            Token tok;
+            bool curr_tok_valid = create_tagged_token(curr_token_str, tok);
+            if(curr_tok_valid){
+                next_tokens.push_back(tok);
                 curr_token_str = "";
             }
             // Jump all spaces until end or next valid char
@@ -187,23 +202,10 @@ std::vector<std::pair<std::string, int>> Pre_processor::_filter_line(std::string
     }
     
     // Check if last token is any of the directives
-    std::string test = "";
-    for (char c: curr_token_str){
-        test += toupper(c); // curr_token_str UPPERCASE
-    } 
-      
-    if(test == "MACRO"){
-        next_tokens.push_back(std::make_pair(curr_token_str, MACRO));
-    } else if(test == "ENDMACRO"){
-        next_tokens.push_back(std::make_pair(curr_token_str, ENDMACRO));
-    } else if(test == "EQU"){
-        next_tokens.push_back(std::make_pair(curr_token_str, EQU));
-    } else if(test == "IF"){
-        next_tokens.push_back(std::make_pair(curr_token_str, IF));
-    } else if(is_opcode(test)){
-        next_tokens.push_back(std::make_pair(curr_token_str, OP));
-    } else if(test != ""){
-        next_tokens.push_back(std::make_pair(curr_token_str, -1));
+    Token tok;
+    bool curr_tok_valid = create_tagged_token(curr_token_str, tok);
+    if(curr_tok_valid){
+        next_tokens.push_back(tok);
     }
 
     return next_tokens;
@@ -220,20 +222,12 @@ std::vector<std::string> Pre_processor::run(){
         bool has_equ = false;
         bool has_macro = false;
         bool has_if = false;
-        /*
-        Add flag "linha cheia"
-        while(!linha cheia){
-            Pega tokens
-        }
-          Linha cheia --> Tem uma diretiva || Tem uma operação 
-        
-        */
-        std::vector<std::pair<std::string, int>> tokens = _filter_line(line);
+        std::vector<Token> tokens = _filter_line(line);
         if(tokens.size() == 0) continue;    // Empty line
         tokens.push_back(std::make_pair("\n", 11));
         
         for(int i = 0; i < (int) tokens.size(); i++){
-            std::pair<std::string, int>& pair = tokens[i];
+            Token &pair = tokens[i];
             if(pair.second == EQU){
                 has_equ = true;
             } else if(pair.second == MACRO){
@@ -252,38 +246,42 @@ std::vector<std::string> Pre_processor::run(){
                         tokens[i] = __MDT[label_id][0];
                         tokens.insert(tokens.begin() + i + 1, __MDT[label_id].begin() + 1, __MDT[label_id].end());
                     } else{
+                        // Hash map that insert current id and return respective parameter
                         std::unordered_map<char,std::string> parameters;
                         int label_id = __MNT[pair.first].second;
+                        // Go to parameters (currently in macro funcion name, not parameters)
                         i++;
-                        std::pair<std::string, int>& next_pair = tokens[i];
-                        char parameter_id = '1';
-                        std::string current_parameter;
-                        for(int i = 0; i < next_pair.first.size(); i++){
-                            char current_char = next_pair.first[i];
-                            if(current_char == ','){
-                                parameters[parameter_id++] = current_parameter;
-                                current_parameter.clear();
-                            } else{
-                                current_parameter += current_char;
-                            }
+                        // Get parameters
+                        Token& parameter_token = tokens[i];
+                        std::vector<std::string> splited_token = Utils::split(parameter_token.first, ',');
+
+                        for(int i = 0; i < splited_token.size(); i++){
+                            parameters['1' + i] = splited_token[i];
                         }
-                        parameters[parameter_id] = current_parameter;
-                        std::vector<std::pair<std::string, int>> fixed_tokens = __MDT[label_id];
+
+                        // Tokens parsed to generic macro to especifc macro
+                        std::vector<Token> fixed_tokens = __MDT[label_id];
+
                         for(auto &pair : fixed_tokens){
+                            // If token don't have #, then this token don't use macro parameter
                             if(pair.first[0] != '#') continue;
+                            // New token string
                             std::string new_token;
-                            for(int i = 0; i < pair.first.size(); i++){
-                                char current_char = pair.first[i];
-                                if(current_char == '#'){
-                                    new_token += parameters[pair.first[i+1]];
-                                    if(i+1 != pair.first.size()-1) new_token += ",";
-                                }
+                            splited_token = Utils::split(pair.first, ',');
+                            for(int i = 0; i < splited_token.size(); i++){
+                                if(i) new_token += ",";
+                                // Transform #1 to respective parameter
+                                new_token += parameters[splited_token[i][1]];
                             }
+                            // Overwrite generic parameter
                             pair.first = new_token;
                         }
 
+                        // Overwrite macro name token with the first fixed_tokens
                         tokens[i-1] = fixed_tokens[0];
+                        // Overwrite parameters token with the second fixed_tokens
                         tokens[i] = fixed_tokens[1];
+                        // Insert the remaining macro token
                         tokens.insert(tokens.begin() + i + 1, fixed_tokens.begin() + 2, fixed_tokens.end());
                     }
                 }
@@ -295,28 +293,18 @@ std::vector<std::string> Pre_processor::run(){
             std::unordered_map< std::string,char> parameters;
             // If have 3 tokens, then will be label, macro and parameters
             if(tokens.size() == 4){
+                
+                std::string current_parameter;
+                std::vector<std::string> splited_token = Utils::split(tokens[2].first, ',');
 
-                char parameter_id = '1';
-
-                // Count how many ',' have, so that is the quantity of parameters + 1
-                std::string current_parameter, last_token = tokens[2].first;
-
-                for(int i = 0; i < (int) last_token.size(); i++){
-                    // Current token char
-                    char current_char = last_token[i];
-
-                    // If have & ignore
-                    if(current_char == '&') continue;
-
-                    // If is ',' then the current parameter token is over
-                    if(current_char == ','){
-                        parameters[current_parameter] = parameter_id++;
-                        current_parameter.clear();
-                    } else{
-                        current_parameter += current_char;
-                    }
+                for(int i = 0; i < splited_token.size(); i++){
+                    current_parameter = splited_token[i];
+                    // Remove &
+                    current_parameter.erase(current_parameter.begin());
+                    // Create hash table with Parameter and current generic ID
+                    parameters[current_parameter] = '1' + i;
                 }
-                parameters[current_parameter] = parameter_id;
+                
             }
             // Insert macro name into MNT table, with current amount of paramenters and respective MDT id
             __MNT[tokens[0].first] = std::make_pair(parameters.size(), ++__macro_id);
@@ -326,33 +314,27 @@ std::vector<std::string> Pre_processor::run(){
             tokens = _filter_line(line);
             while(tokens[0].second != ENDMACRO){
                 tokens.push_back(std::make_pair("\n", 11));
-
                 // Checks if have &parameter, in order to change to the generic in MDT
-                for(int i = 0; i < tokens.size(); i++){
-                    // Current token
-                    std::pair<std::string, int> pair = tokens[i];
+                for(Token &pair : tokens){
                     // If is not &, then don't need to change
                     if(pair.first[0] != '&') continue;
                     // New generic token with correct parameters                    
                     std::string new_token, current_parameter;
-                    // Iterate through chars
-                    for(auto c : pair.first){
-
-                        // Add # for convention
-                        if(c == '&'){
-                            new_token += "#";
-                        } else if(c == ','){
-                            // Finished a parameter, then need to add in generic version
-                            new_token += parameters[current_parameter];
-                            new_token += ",";
-                            current_parameter.clear();
-                        } else{
-                            current_parameter += c;
-                        }
+                    // Split tokens by ','
+                    std::vector<std::string> splited_token = Utils::split(pair.first, ',');
+                    // Iterate through splited token
+                    for(int i = 0; i < splited_token.size(); i++){
+                        // Add ',' if have more than 1 parameter
+                        if(i) new_token += ",";
+                        // Get splited parameter
+                        current_parameter = splited_token[i];
+                        // Erase &
+                        current_parameter.erase(current_parameter.begin());
+                        // Add # + Current ID
+                        new_token = new_token + "#" + parameters[current_parameter];
                     }
-                    // Add last generic parameter
-                    new_token += parameters[current_parameter];
-                    tokens[i].first = new_token;
+                    // New token with generic parameter
+                    pair.first = new_token;
                 }
 
                 // Append tokens from that macro in MDT table
@@ -370,36 +352,15 @@ std::vector<std::string> Pre_processor::run(){
         }
 
         // EXPAND IF - IF <value> <\n>
-        if(has_if){
-            // FIXME: Verificar se argumento do IF é um número
-            if( tokens.size() == 3){
-                if(tokens[1].first != "0"){
-                    // Inclui próxima linha, mas não esta
-                    continue;
-                } else {
-                    // Não inclui nem esta nem a próxima linha
-                    getline(__file_pointer,line);
-                    continue;
-                }
-            } else {
-                // TODO: IF errors
-            }
+        // IF line not added to 
+        else if(has_if){
+            _expand_ifs(tokens);
+            continue;
         }
         // EXPAND EQU - LABEL: EQU VALUE <\n>
-        if(has_equ){
-            // FIXME: Verificar se argumento do EQU é um número
-            if( tokens.size() == 4 && 
-                tokens[0].second == LABEL &&
-                tokens[1].second == EQU &&
-                tokens[2].second == -1){
-                // EQU usada corretamente
-                __equs[tokens[0].first] = stoi(tokens[2].first);
-                // EQU def doesn't go for processing
-                continue;
-            } else {
-                // TODO: Tratamento de erros para EQU
-            }
-
+        else if(has_equ){
+            _expand_equs(tokens);
+            continue;
         }
         // TODO: Talvez devemos considerar retornar direto o vetor de tokens
         // Transforma o vetor de tokens em string
@@ -426,6 +387,33 @@ std::vector<std::string> Pre_processor::run(){
     __done = true;
     __buffer = processed_file;
     return processed_file;
+}
+
+void Pre_processor::_expand_ifs(std::vector<Token> curr_tokens){
+    // FIXME: Verificar se argumento do IF é um número
+    if( curr_tokens.size() == 3){
+        if(curr_tokens[1].first == "0"){
+            // Não inclui a próxima linha
+            std::string line;
+            getline(__file_pointer, line);
+        }
+    } else {
+        // TODO: IF errors
+    }
+}
+
+
+void Pre_processor::_expand_equs(std::vector<Token> curr_tokens){
+    // FIXME: Verificar se argumento do EQU é um número
+    if( curr_tokens.size() == 4 && 
+        curr_tokens[0].second == LABEL &&
+        curr_tokens[1].second == EQU &&
+        curr_tokens[2].second == -1){
+        // EQU usada corretamente
+        __equs[curr_tokens[0].first] = stoi(curr_tokens[2].first);
+    } else {
+        // TODO: Tratamento de erros para EQU
+    }
 }
 
 #endif

@@ -48,13 +48,13 @@ TEST_CASE("Testing class creation", "[pre_processor]") {
 
     SECTION("Verifiy that I can create a Pre_processor object with an acceptable file") {
         REQUIRE_NOTHROW( [&](){
-            Pre_processor proc("assets/test_PreProcessor.txt");
+            Pre_processor proc("assets/test_PreProcessor_comment.txt");
         }());
-        Pre_processor proc("assets/test_PreProcessor.txt");
-        REQUIRE(proc.get_input_name() == "assets/test_PreProcessor.txt");
+        Pre_processor proc("assets/test_PreProcessor_comment.txt");
+        REQUIRE(proc.get_input_name() == "assets/test_PreProcessor_comment.txt");
         REQUIRE(proc.get_buffer().size() == 0);
         REQUIRE(proc.get_file_pointer().is_open());
-        REQUIRE(proc.get_output_name() == "assets/test_PreProcessor.pre");
+        REQUIRE(proc.get_output_name() == "assets/test_PreProcessor_comment.pre");
         REQUIRE(proc.get_done() == false);
     }
     
