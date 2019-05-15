@@ -170,14 +170,14 @@ TEST_CASE("Test MACRO processing", "[directives]") {
         lines = read_file(out_name);
         std::vector<std::string> expected{
             "HELLOW WORLD",
-            "COPY A, B",
-            "COPY A, Z",
-            "COPY B, A",
-            "COPY Z, B",
+            "COPY A,B",
+            "COPY A,Z",
+            "COPY B,A",
+            "COPY Z,B",
             "GOOD BYE WORLD",
-            "COPY B, Z",
-            "COPY A, B",
-            "COPY Z, A"
+            "COPY B,Z",
+            "COPY A,B",
+            "COPY Z,A"
         };
         REQUIRE(lines.size() == expected.size());
         for(int i = 0; i < (int)expected.size(); i++){
@@ -194,8 +194,8 @@ TEST_CASE("Test EQU processing", "[directives]") {
     lines = read_file(out_name);
     std::vector<std::string> expected{
         "N: SPACE 1",
-        "ADD N+1",
-        "SUB N+10",
+        "ADD N + 1",
+        "SUB N + 10",
         "K: CONST 10"
     };
     REQUIRE(lines.size() == expected.size());

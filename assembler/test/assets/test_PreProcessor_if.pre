@@ -1,9 +1,6 @@
-TRUE: EQU 1
-FALSE: EQU 0
-
 This line is ok
-IF TRUE
+IF 1
 This line has to be in the program
-IF FALSE
+IF 0
 This line CANNOT be in the program
 This line is ok

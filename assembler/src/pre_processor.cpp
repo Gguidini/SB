@@ -85,7 +85,6 @@ std::string Pre_processor::generate_output(){
     if(!fd.is_open()){
         throw("Algum erro aconteceu tentando gerar o arquivo de saída\n");
     }
-    std::cout << "CRIEI O ARQUIVO " << __output_name << " E ABERTO = " << fd.is_open() << std::endl;
     for(std::string str : __buffer){
         fd << str;
     }
@@ -93,6 +92,10 @@ std::string Pre_processor::generate_output(){
     return __output_name;
 }
 
+// _filter_line é uma função interna que faz a filtragem das linhas.
+// Classificada como publica para podermos testá-la mais facilmente.
+// Recebe uma linha de um arquivo e a separa em um vetor de tokens.
+// Cada token é um string e uma anotação daquela string.
 std::vector<std::pair<std::string, int>> Pre_processor::_filter_line(std::string &line){
     // Return value
     std::vector<std::pair<std::string, int>> next_tokens;
@@ -182,7 +185,6 @@ std::vector<std::string> Pre_processor::run(){
 
     while(getline(__file_pointer,line)){
         bool has_equ = false;
-        bool has_label = false;
         bool has_macro = false;
         /*
         Add flag "linha cheia"
@@ -193,38 +195,33 @@ std::vector<std::string> Pre_processor::run(){
         
         */
         std::vector<std::pair<std::string, int>> tokens = _filter_line(line);
-        tokens.push_back(std::make_pair("\n", 11));
         if(tokens.size() == 0) continue;    // Empty line
+        tokens.push_back(std::make_pair("\n", 11));
         
-        for(int i = 0; i < (int)tokens.size(); i++){
+        for(int i = 0; i < (int) tokens.size(); i++){
             std::pair<std::string, int>& pair = tokens[i];
             if(pair.second == EQU){
                 has_equ = true;
-            }
-            if(pair.second == LABEL){
-                has_label = true;
-            }
-            if(pair.second == MACRO){
+            } else if(pair.second == MACRO){
                 has_macro = true;
-            }
-            if(pair.second == -1){
+            } else if(pair.second == -1){
+                // Prováveis LABELS em uso
                 if(__equs.find(pair.first) != __equs.end()){
                     // Expand EQU
                     pair.first = std::to_string(__equs[pair.first]);
                 }else if(__MNT.count(pair.first)){
                     int label_id = __MNT[pair.first].second;
                     tokens[i] = __MDT[label_id][0];
-                    //std::cout << "ADD O " << __MDT[label_id][0].first << " No lugar do " << tokens[i].first << " e o prox eh " << tokens[i+1].first << std::endl;
                     tokens.insert(tokens.begin() + i + 1, __MDT[label_id].begin() + 1, __MDT[label_id].end());
                 }
             }
         }
-        // TODO : EXPAND MACROS
+        // EXPAND MACROS
         if(has_macro){
             int parameters = 0;
             if(tokens.size() == 3){
                 parameters = 1;
-                for(int i = 0; i < tokens[2].first.size(); i++) if(tokens[2].first[i] == ',') parameters++;
+                for(int i = 0; i < (int) tokens[2].first.size(); i++) if(tokens[2].first[i] == ',') parameters++;
             }
             __MNT[tokens[0].first] = std::make_pair(parameters, ++__macro_id);
             getline(__file_pointer,line);
@@ -241,12 +238,10 @@ std::vector<std::string> Pre_processor::run(){
             continue;
         }
 
-
-
         // TODO : SOLVE IFS
         // EXPAND EQU
         if(has_equ){
-            if( tokens.size() == 3 && 
+            if( tokens.size() == 4 && 
                 tokens[0].second == LABEL &&
                 tokens[1].second == EQU &&
                 tokens[2].second == -1){
@@ -281,11 +276,6 @@ std::vector<std::string> Pre_processor::run(){
         processed_file.push_back(processed_line);
     }
 
-    if(__MDT[__MNT["TROCA"].second].size() > 0){
-        std::cout << "printando size MDT final troca que tem id = " << __MNT["TROCA"].second << " : " << __MDT[__MNT["TROCA"].second].size() << std::endl;
-        for(auto x : __MDT[__MNT["TROCA"].second]) std::cout << "|" << x.first << " ";
-        std::cout << std::endl;
-    }
     __done = true;
     __buffer = processed_file;
     return processed_file;
