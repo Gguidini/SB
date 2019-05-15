@@ -240,31 +240,126 @@ std::vector<std::string> Pre_processor::run(){
                     // Expand EQU
                     pair.first = std::to_string(__equs[pair.first]);
                 }else if(__MNT.count(pair.first)){
-                    int label_id = __MNT[pair.first].second;
-                    tokens[i] = __MDT[label_id][0];
-                    tokens.insert(tokens.begin() + i + 1, __MDT[label_id].begin() + 1, __MDT[label_id].end());
+                    // Don't have parameters
+                    if(__MNT[pair.first].first == 0){
+                        int label_id = __MNT[pair.first].second;
+                        tokens[i] = __MDT[label_id][0];
+                        tokens.insert(tokens.begin() + i + 1, __MDT[label_id].begin() + 1, __MDT[label_id].end());
+                    } else{
+                        std::unordered_map<char,std::string> parameters;
+                        int label_id = __MNT[pair.first].second;
+                        i++;
+                        std::pair<std::string, int>& next_pair = tokens[i];
+                        char parameter_id = '1';
+                        std::string current_parameter;
+                        for(int i = 0; i < next_pair.first.size(); i++){
+                            char current_char = next_pair.first[i];
+                            if(current_char == ','){
+                                parameters[parameter_id++] = current_parameter;
+                                current_parameter.clear();
+                            } else{
+                                current_parameter += current_char;
+                            }
+                        }
+                        parameters[parameter_id] = current_parameter;
+                        std::vector<std::pair<std::string, int>> fixed_tokens = __MDT[label_id];
+                        for(auto &pair : fixed_tokens){
+                            if(pair.first[0] != '#') continue;
+                            std::string new_token;
+                            for(int i = 0; i < pair.first.size(); i++){
+                                char current_char = pair.first[i];
+                                if(current_char == '#'){
+                                    new_token += parameters[pair.first[i+1]];
+                                    if(i+1 != pair.first.size()-1) new_token += ",";
+                                }
+                            }
+                            pair.first = new_token;
+                        }
+
+                        tokens[i-1] = fixed_tokens[0];
+                        tokens[i] = fixed_tokens[1];
+                        tokens.insert(tokens.begin() + i + 1, fixed_tokens.begin() + 2, fixed_tokens.end());
+                    }
                 }
             }
         }
         // EXPAND MACROS
         if(has_macro){
-            int parameters = 0;
-            if(tokens.size() == 3){
-                parameters = 1;
-                for(int i = 0; i < (int) tokens[2].first.size(); i++) if(tokens[2].first[i] == ',') parameters++;
+            // Hash map to order current parameter to generic parameter in MDT
+            std::unordered_map< std::string,char> parameters;
+            // If have 3 tokens, then will be label, macro and parameters
+            if(tokens.size() == 4){
+
+                char parameter_id = '1';
+
+                // Count how many ',' have, so that is the quantity of parameters + 1
+                std::string current_parameter, last_token = tokens[2].first;
+
+                for(int i = 0; i < (int) last_token.size(); i++){
+                    // Current token char
+                    char current_char = last_token[i];
+
+                    // If have & ignore
+                    if(current_char == '&') continue;
+
+                    // If is ',' then the current parameter token is over
+                    if(current_char == ','){
+                        parameters[current_parameter] = parameter_id++;
+                        current_parameter.clear();
+                    } else{
+                        current_parameter += current_char;
+                    }
+                }
+                parameters[current_parameter] = parameter_id;
             }
-            __MNT[tokens[0].first] = std::make_pair(parameters, ++__macro_id);
+            // Insert macro name into MNT table, with current amount of paramenters and respective MDT id
+            __MNT[tokens[0].first] = std::make_pair(parameters.size(), ++__macro_id);
+
+            // Read all next line until ENDMACRO
             getline(__file_pointer,line);
             tokens = _filter_line(line);
             while(tokens[0].second != ENDMACRO){
-                if(tokens[(int)tokens.size()-1].second != ENDL){
-                    tokens.push_back(std::make_pair("\n", 11));
+                tokens.push_back(std::make_pair("\n", 11));
+
+                // Checks if have &parameter, in order to change to the generic in MDT
+                for(int i = 0; i < tokens.size(); i++){
+                    // Current token
+                    std::pair<std::string, int> pair = tokens[i];
+                    // If is not &, then don't need to change
+                    if(pair.first[0] != '&') continue;
+                    // New generic token with correct parameters                    
+                    std::string new_token, current_parameter;
+                    // Iterate through chars
+                    for(auto c : pair.first){
+
+                        // Add # for convention
+                        if(c == '&'){
+                            new_token += "#";
+                        } else if(c == ','){
+                            // Finished a parameter, then need to add in generic version
+                            new_token += parameters[current_parameter];
+                            new_token += ",";
+                            current_parameter.clear();
+                        } else{
+                            current_parameter += c;
+                        }
+                    }
+                    // Add last generic parameter
+                    new_token += parameters[current_parameter];
+                    tokens[i].first = new_token;
                 }
+
+                // Append tokens from that macro in MDT table
                 __MDT[__macro_id].insert(__MDT[__macro_id].end(), tokens.begin(), tokens.end());
+
+                // Read all next line until ENDMACRO
                 getline(__file_pointer,line);
                 tokens = _filter_line(line);
             }
+            // Remove last duplicated \n token
             __MDT[__macro_id].pop_back();
+
+            // Don't add tokens to final file becaus macro definition don't appear in main final file
             continue;
         }
 
