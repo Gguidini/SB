@@ -22,21 +22,21 @@
 #define ENDMACRO 5
 #define OP 4
 #define ENDL 11
+
 // The pre processor class.
 // Receives the original file to process,
-// Outputs a new file, with expanded macros.
+// Outputs a new file, with preprocessor directives handled.
 class Pre_processor {
+    // Private attributes
     // General information
     std::vector<std::string> __buffer;  // Saves lines after processing
-    std::string __input_name;      // Name of input file
-    std::string __output_name;           // Name of output file
-    std::ifstream __file_pointer;             // Input file pointer
-    int __macro_id;
+    std::string __input_name;           // Name of input file
+    std::string __output_name;          // Name of output file
+    std::ifstream __file_pointer;       // Input file pointer
     bool __done;                        // If processed the entire file
     
-    // All available instructions
-    std::unordered_map<std::string, Instruction> intructions;
     // Macro values
+    int __macro_id;
     std::unordered_map<std::string, std::pair<int,int> > __MNT;
     std::unordered_map<int, std::vector<std::pair<std::string, int>>> __MDT;
 
@@ -55,11 +55,14 @@ public:
     bool get_done(){return __done;}
     // Run
     std::vector<std::string> run();
-    // FIXME: Remove this implementation an code correct one outside class declaration
+    // Generate output
     std::string generate_output();
+    // Internal use (public for testing purposes)
     std::vector<std::pair<std::string, int>> _filter_line(std::string&line);    
 };
 
+// Pre_processor sem arquivo de referência.
+// Nada é inicializado como válido.
 Pre_processor::Pre_processor(){
     __buffer = std::vector<std::string>();
     __input_name = "";
@@ -68,6 +71,8 @@ Pre_processor::Pre_processor(){
     __macro_id = 0;
 }
 
+// Pre_processor com arquivo de referência.
+// Arquivo de referência já é aberto.
 Pre_processor::Pre_processor(std::string input_name){
     __buffer = std::vector<std::string>();
     __input_name = input_name;
@@ -76,6 +81,12 @@ Pre_processor::Pre_processor(std::string input_name){
     __file_pointer.open(input_name);
 }
 
+// generate_output gera o arquivo .pre.
+// Esse arquivo é o arquivo original com todas as diretivas de pre processamentos realizadas.
+// Só deve ser executada após a função run().
+// As linhas do arquivo estarão no atributo __buffer
+// Nome do arquivo de saída estará no atributo __output_name
+// Retorna o nome do arquivo de saída gerado, com extensão .pre
 std::string Pre_processor::generate_output(){
     if(!__done){
         throw("Tentando gerar output sem pre-processar o arquivo\n");
@@ -109,6 +120,7 @@ std::vector<std::pair<std::string, int>> Pre_processor::_filter_line(std::string
             break;
         }
         // Erase mutiples spaces and ending space
+        // Separates tokens (space is used to separate tokens)
         else if(c == ' '){
             // Check if curr token is any of the preprocessing directives
             // And this space is pointing to the end of it
@@ -151,7 +163,7 @@ std::vector<std::pair<std::string, int>> Pre_processor::_filter_line(std::string
             curr_token_str = "";
             continue;
         }
-        // Add normal char
+        // Add normal char to current token
         else if( c >= '!' and c <= '~' ){
             curr_token_str += c;
         }
@@ -178,6 +190,8 @@ std::vector<std::pair<std::string, int>> Pre_processor::_filter_line(std::string
     return next_tokens;
 }
 
+// run processes de original file.
+// Saves processed lines in __buffer. Returns this value.
 std::vector<std::string> Pre_processor::run(){
     
     std::vector<std::string> processed_file;
