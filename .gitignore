@@ -6,7 +6,12 @@
 assembler/tradutor
 */tradutor
 */a.out
+*/a.exe
 assembler/test/a.out
+assembler/test/a.exe
 
 # test framework
 assembler/test/catch_framework.hpp
+
+# arquivos gerados pelo pre processador
+assembler/test/assets/*.pre
