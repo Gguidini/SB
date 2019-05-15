@@ -75,10 +75,18 @@ Pre_processor::Pre_processor(){
 // Arquivo de referência já é aberto.
 Pre_processor::Pre_processor(std::string input_name){
     __buffer = std::vector<std::string>();
-    __input_name = input_name;
     __output_name = input_name.substr(0, input_name.size() - 4) + ".pre";
     __done = false;
+    __input_name = input_name;
+    // Verifica se extensão é .txt
+    if(__input_name.substr(__input_name.size() - 4, 4) != ".txt"){
+        throw "Arquivo " + __input_name + " não possui extensão correta";
+    } 
     __file_pointer.open(input_name);
+    // Verifica que conseguiu abrir o arquivo
+    if(!__file_pointer.is_open()){
+        throw "File " + __input_name + " not Found";
+    }
 }
 
 // generate_output gera o arquivo .pre.

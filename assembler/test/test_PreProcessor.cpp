@@ -59,24 +59,14 @@ TEST_CASE("Testing class creation", "[pre_processor]") {
     }
     
     SECTION("Verifiy that I cannot create a Pre_processor object with an unacceptable file"){
-        // FIXME: Fix test to throw a custom expection when creating class
         REQUIRE_THROWS([&](){
             Pre_processor proc("unnacceptable_file.txt");
-            if(!proc.get_file_pointer().is_open()){
-                throw 1;
-            }
         }());
     }
 
     SECTION("Verify that file's extension is .txt"){
-        // FIXME: Fix test to throw a custom expection when creating class
         REQUIRE_THROWS([&](){
             Pre_processor proc("assets/test_PreProcessor.pdf");
-            std::string name = proc.get_input_name();
-            name = name.substr (name.size() - 4,4);
-            if(name != ".txt"){
-                throw 1;
-            } 
         }());
     }
 }
