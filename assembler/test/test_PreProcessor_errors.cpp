@@ -14,7 +14,7 @@ TEST_CASE("Identifies EQU errors", "[error]"){
     Pre_processor proc("assets/test_PreProcessorErrors_equ.txt");
     proc.run();
     std::vector<Error> err = proc.get_errors();
-    REQUIRE(err.size() == 5);
+    REQUIRE((err.size()) == 5);
     for(int i = 0; i < 5; i++){
         REQUIRE(err[i].get_code() == SYN_ERR);
         REQUIRE(err[i].get_line() == 6 + i);

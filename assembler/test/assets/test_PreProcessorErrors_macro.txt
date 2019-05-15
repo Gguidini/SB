@@ -1,0 +1,9 @@
+ERROR1: MACRO &A, &B, C  ; Macro sem no parametro &
+COPY &A, &B
+ADD &C
+ENDMACRO
+
+ERROR2: MACRO &A, &B  ; Macro usa um parametro não declarado
+COPY &A, &B
+ADD &C
+ENDMACRO

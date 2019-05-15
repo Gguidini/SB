@@ -4,6 +4,12 @@ FALSE: EQU 0
 This line is ok
 IF TRUE
 This line has to be in the program
+IF TRUE
+; This line should be ignored.
+This line has to be in the program
 IF FALSE
+This line CANNOT be in the program
+IF FALSE
+; This line shoud be ignored
 This line CANNOT be in the program
 This line is ok

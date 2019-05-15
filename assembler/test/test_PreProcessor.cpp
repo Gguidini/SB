@@ -198,6 +198,7 @@ TEST_CASE("Test IF processing", "[directives]") {
     std::vector<std::string> expected{
         "This line is ok",
         "This line has to be in the program",
+        "This line has to be in the program",
         "This line is ok"
     };
     REQUIRE(lines.size() == expected.size());

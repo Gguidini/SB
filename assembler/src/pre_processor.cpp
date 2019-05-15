@@ -352,12 +352,13 @@ std::vector<std::string> Pre_processor::run(){
         }
 
         // EXPAND IF - IF <value> <\n>
-        // IF line not added to 
+        // IF line not added to preprocessed file
         else if(has_if){
             _expand_ifs(tokens);
             continue;
         }
         // EXPAND EQU - LABEL: EQU VALUE <\n>
+        // EQU definition line not added to preprocessed file
         else if(has_equ){
             _expand_equs(tokens);
             continue;
@@ -395,7 +396,12 @@ void Pre_processor::_expand_ifs(std::vector<Token> curr_tokens){
         if(curr_tokens[1].first == "0"){
             // Não inclui a próxima linha
             std::string line;
-            getline(__file_pointer, line);
+            while( getline(__file_pointer, line) ){
+                std::vector<Token> tokens = _filter_line(line);
+                if(tokens.size() != 0){
+                    break;
+                }
+            }
         }
     } else {
         // TODO: IF errors
