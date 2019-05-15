@@ -67,16 +67,6 @@ TEST_CASE("Testing class creation", "[pre_processor]") {
             }
         }());
     }
-    
-    SECTION("Verify that I cannot create a Pre_processor object without a file") {
-        // FIXME: Fix test to throw a custom expection when creating class
-        REQUIRE_THROWS([&](){
-            Pre_processor proc = Pre_processor();
-            if(proc.get_input_name() == ""){
-                throw 1;
-            }
-        }());
-    }
 
     SECTION("Verify that file's extension is .txt"){
         // FIXME: Fix test to throw a custom expection when creating class
