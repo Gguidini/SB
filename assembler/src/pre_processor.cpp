@@ -414,15 +414,26 @@ void Pre_processor::_expand_ifs(std::vector<Token> curr_tokens, int& curr_line){
 
 
 void Pre_processor::_expand_equs(std::vector<Token> curr_tokens, int& curr_line){
-    // FIXME: Verificar se argumento do EQU é um número
-    if( curr_tokens.size() == 4 && 
-        curr_tokens[0].second == LABEL &&
-        curr_tokens[1].second == EQU &&
-        curr_tokens[2].second == -1){
-        // EQU usada corretamente
-        __equs[curr_tokens[0].first] = stoi(curr_tokens[2].first);
+    // LABEL: EQU ARG \n
+    if(curr_tokens.size() == 4){
+        if( curr_tokens[0].second == LABEL &&
+            curr_tokens[1].second == EQU &&
+            curr_tokens[2].second == -1){
+            if(Utils::is_digit(curr_tokens[2].first)){
+            __equs[curr_tokens[0].first] = stoi(curr_tokens[2].first);
+            } else {
+                __errs.push_back(Error(SYN_ERR, curr_line, "Argumento EQU deve ser numérico"));
+            }
+            // EQU usada corretamente
+        } else {
+            __errs.push_back(Error(SYN_ERR, curr_line, "EQU mal formado. Sintaxe: LABEL: EQU ARG"));
+        }
     } else {
-        // TODO: Tratamento de erros para EQU
+        if(curr_tokens.size() > 4){
+            __errs.push_back(Error(SYN_ERR, curr_line, "Muitos argumentos para diretiva EQU"));
+        } else {
+            __errs.push_back(Error(SYN_ERR, curr_line, "Poucos argumentos para diretiva EQU"));
+        }
     }
 }
 

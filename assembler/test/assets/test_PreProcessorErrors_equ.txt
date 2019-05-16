@@ -6,5 +6,5 @@ OK3: eQU 14
 ERROR: EQU          ; Poucos argumentos
 ERROR1: EQU 12 13   ; Muitos argumentos
 ERROR2: EQU batata  ; Argumento nao numerico
-EQU 12              ; EQU sem label
+EQU EQU 12              ; EQU sem label
 LABEL: 1 EQU        ; EQU fora de ordem

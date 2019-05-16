@@ -38,5 +38,14 @@ std::string to_upper(std::string str){
     return out;
 }
 
+bool is_digit(std::string str){
+    for(char ch : str){
+        if(!isdigit(ch)){
+            return false;
+        }
+    }
+    return true;
+}
+
 }
 #endif
