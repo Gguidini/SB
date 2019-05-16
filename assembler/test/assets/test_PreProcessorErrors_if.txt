@@ -1,0 +1,11 @@
+LABEL: EQU 1
+
+IF LABEL    ; IF correto
+if LABEL    ; IF correto
+If LABEL    ; IF correto
+
+LABEL: IF   ; Uso errado
+IF IF       ; IF com argumento inválido
+IF LABEL 2  ; Muitos argumentos
+IF          ; Poucos argumentos
+IF batata   ; IF sem argumento numérico
