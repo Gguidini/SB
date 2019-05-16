@@ -56,6 +56,20 @@ bool create_tagged_token(std::string str, Token& tok){
     return true;
 }
 
+// lex_analyser analisa a string de um token LABEL
+// Para verificar se está de acordo com as regras.
+// Labels: /[\w_][\w\d_]{0,49}/
+bool lex_analyser(std::string token){
+    if(isdigit(token[0])) return false;
+    if((int) token.size() > 50) return false;
+
+    for(char ch : token){
+        if((!isalnum(ch)) && (!(ch == '_'))){
+            return false;
+        }
+    }
+    return true;
+}
 // The pre processor class.
 // Receives the original file to process,
 // Outputs a new file, with preprocessor directives handled.
@@ -97,7 +111,7 @@ public:
     // Generate output
     std::string generate_output();
     // Internal use (public for testing purposes)
-    std::vector<Token> _filter_line(std::string&line);    
+    std::vector<Token> _filter_line(std::string&line, int lst_line = 0);    
 };
 
 // Pre_processor sem arquivo de referência.
@@ -157,7 +171,7 @@ std::string Pre_processor::generate_output(){
 // Classificada como publica para podermos testá-la mais facilmente.
 // Recebe uma linha de um arquivo e a separa em um vetor de tokens.
 // Cada token é um string e uma anotação daquela string.
-std::vector<Token> Pre_processor::_filter_line(std::string &line){
+std::vector<Token> Pre_processor::_filter_line(std::string &line, int lst_line){
     // Return value
     std::vector<Token> next_tokens;
     // Construction of return value
@@ -192,6 +206,9 @@ std::vector<Token> Pre_processor::_filter_line(std::string &line){
         // Catch labels and push that token.
         // Flush curr line and continue
         else if(c == ':'){
+            if(!lex_analyser(curr_token_str)){
+                __errs.push_back(Error(LEX_ERR, lst_line + 1, "Label " + curr_token_str + " inválida"));
+            }
             next_tokens.push_back(std::make_pair(curr_token_str, LABEL));
             curr_token_str = "";
             continue;
@@ -224,7 +241,7 @@ std::vector<std::string> Pre_processor::run(){
         bool has_equ = false;
         bool has_macro = false;
         bool has_if = false;
-        std::vector<Token> tokens = _filter_line(line);
+        std::vector<Token> tokens = _filter_line(line, curr_line);
         curr_line++;
         if(tokens.size() == 1) continue;    // Empty line contains only ENDL token
 
@@ -313,7 +330,7 @@ std::vector<std::string> Pre_processor::run(){
 
             // Read all next line until ENDMACRO
             getline(__file_pointer,line);
-            tokens = _filter_line(line);
+            tokens = _filter_line(line, curr_line);
             curr_line++;
             while(tokens[0].second != ENDMACRO){
                 // Checks if have &parameter, in order to change to the generic in MDT
@@ -344,7 +361,7 @@ std::vector<std::string> Pre_processor::run(){
 
                 // Read all next line until ENDMACRO
                 getline(__file_pointer,line);
-                tokens = _filter_line(line);
+                tokens = _filter_line(line, curr_line);
                 curr_line++;
             }
             // Remove last duplicated \n token
@@ -402,7 +419,8 @@ void Pre_processor::_expand_ifs(std::vector<Token> curr_tokens, int& curr_line){
                     // Não inclui a próxima linha
                     std::string line;
                     while( getline(__file_pointer, line) ){
-                        std::vector<Token> tokens = _filter_line(line);
+                        int line_num = curr_line;
+                        std::vector<Token> tokens = _filter_line(line, line_num);
                         curr_line++;
                         if(tokens.size() != 1){
                             break;

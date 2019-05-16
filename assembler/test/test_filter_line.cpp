@@ -116,3 +116,17 @@ TEST_CASE("Testing filter lines for EQU"){
     REQUIRE(token[2] == std::make_pair(std::string("+"), -1));
     REQUIRE(token[3] == std::make_pair(std::string("TESTE"), -1));
 }
+
+TEST_CASE("Testing detection of lexical errors", "[error]"){
+    Pre_processor proc("assets/test_filter_lines_error.txt");
+    proc.run();
+    proc.generate_output();
+    REQUIRE(proc.get_done());
+    std::vector<Error> errs = proc.get_errors();
+    REQUIRE(errs.size() == 5);
+    for(int i = 0; i < 5; i++){
+        REQUIRE(errs[i].get_code() == LEX_ERR);
+        REQUIRE(errs[i].get_line() == (3 + i));
+        std::cout << errs[i] << std::endl;
+    }
+}

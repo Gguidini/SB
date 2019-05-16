@@ -1,0 +1,7 @@
+LABEL_OK:
+Label2_OK:
+1LabelErrada:
+Label#Invalida:
+Label&Invalida:
+Label,Invalida:
+LabelGigantescaDesnecessariamenteMeuDeusDoCeuPorque:
