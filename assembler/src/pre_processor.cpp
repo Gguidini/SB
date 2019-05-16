@@ -243,26 +243,21 @@ std::vector<std::string> Pre_processor::run(){
         bool has_macro = false;
         bool has_if = false;
         
-        std::cout << "Linha: " << line << std::endl;
 
         std::vector<Token> tokens_to_add = _filter_line(line, curr_line);
         curr_line++;
         if(tokens_to_add.size() == 1) {
-            std::cout << "Linha vazia após processamento\n";
             continue;    // Empty line contains only ENDL token
         } else if(tokens_to_add.size() == 2 && tokens_to_add[0].second == LABEL){
             // Line with only a label.
             // Label should be on the line below for processing.
-            std::cout << "Linha só com label\n";
             tokens_to_add.pop_back();   // Remove <\n>
             tokens.insert(tokens.end(), tokens_to_add.begin(), tokens_to_add.end());
             continue;
         } else {
             // Line with anything not empty and not only label
             tokens.insert(tokens.end(), tokens_to_add.begin(), tokens_to_add.end());
-            std::cout << "Linha válida\n";
         }
-        std::cout << "Processando linha\n";
         for(int i = 0; i < (int) tokens.size(); i++){
             Token &pair = tokens[i];
             if(pair.second == EQU){
