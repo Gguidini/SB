@@ -237,14 +237,32 @@ std::vector<std::string> Pre_processor::run(){
     std::vector<std::string> processed_file;
     std::string line;
     int curr_line = 0;
+    std::vector<Token> tokens = std::vector<Token>();   // Empty token vector
     while(getline(__file_pointer,line)){
         bool has_equ = false;
         bool has_macro = false;
         bool has_if = false;
-        std::vector<Token> tokens = _filter_line(line, curr_line);
-        curr_line++;
-        if(tokens.size() == 1) continue;    // Empty line contains only ENDL token
+        
+        std::cout << "Linha: " << line << std::endl;
 
+        std::vector<Token> tokens_to_add = _filter_line(line, curr_line);
+        curr_line++;
+        if(tokens_to_add.size() == 1) {
+            std::cout << "Linha vazia após processamento\n";
+            continue;    // Empty line contains only ENDL token
+        } else if(tokens_to_add.size() == 2 && tokens_to_add[0].second == LABEL){
+            // Line with only a label.
+            // Label should be on the line below for processing.
+            std::cout << "Linha só com label\n";
+            tokens_to_add.pop_back();   // Remove <\n>
+            tokens.insert(tokens.end(), tokens_to_add.begin(), tokens_to_add.end());
+            continue;
+        } else {
+            // Line with anything not empty and not only label
+            tokens.insert(tokens.end(), tokens_to_add.begin(), tokens_to_add.end());
+            std::cout << "Linha válida\n";
+        }
+        std::cout << "Processando linha\n";
         for(int i = 0; i < (int) tokens.size(); i++){
             Token &pair = tokens[i];
             if(pair.second == EQU){
@@ -384,6 +402,7 @@ std::vector<std::string> Pre_processor::run(){
             __MDT[__macro_id].pop_back();
 
             // Don't add tokens to final file becaus macro definition don't appear in main final file
+            tokens.clear();
             continue;
         }
 
@@ -391,12 +410,14 @@ std::vector<std::string> Pre_processor::run(){
         // IF line not added to preprocessed file
         else if(has_if){
             _expand_ifs(tokens, curr_line);
+            tokens.clear();
             continue;
         }
         // EXPAND EQU - LABEL: EQU VALUE <\n>
         // EQU definition line not added to preprocessed file
         else if(has_equ){
             _expand_equs(tokens, curr_line);
+            tokens.clear();
             continue;
         }
         // TODO: Talvez devemos considerar retornar direto o vetor de tokens
@@ -419,6 +440,7 @@ std::vector<std::string> Pre_processor::run(){
             }
         }
         processed_file.push_back(processed_line);
+        tokens.clear();
     }
 
     __done = true;
