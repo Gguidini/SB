@@ -7,3 +7,12 @@ ERROR2: MACRO &A, &B  ; Macro usa um parametro não declarado
 COPY &A, &B
 ADD &C
 ENDMACRO
+
+MACRO &A, &B  ; Macro sem label
+COPY &A, &B
+ENDMACRO
+
+ERROR4: MACRO &A, &B, &C, &D  ; Macro com mais de 3 parametros
+COPY &A, &B
+ADD &C
+ENDMACRO
