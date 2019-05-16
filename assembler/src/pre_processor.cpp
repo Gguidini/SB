@@ -8,6 +8,7 @@
 #include <fstream>
 #include <vector>
 #include <map>
+// Local dependencies
 #include "../lib/opcodes.h"
 #include "../lib/utils.h"
 #include "errors.cpp"
@@ -208,6 +209,7 @@ std::vector<Token> Pre_processor::_filter_line(std::string &line){
         next_tokens.push_back(tok);
     }
 
+    next_tokens.push_back(std::make_pair("\n", 11));
     return next_tokens;
 }
 
@@ -223,9 +225,8 @@ std::vector<std::string> Pre_processor::run(){
         bool has_macro = false;
         bool has_if = false;
         std::vector<Token> tokens = _filter_line(line);
-        if(tokens.size() == 0) continue;    // Empty line
-        tokens.push_back(std::make_pair("\n", 11));
-        
+        if(tokens.size() == 1) continue;    // Empty line contains only ENDL token
+
         for(int i = 0; i < (int) tokens.size(); i++){
             Token &pair = tokens[i];
             if(pair.second == EQU){
@@ -255,7 +256,7 @@ std::vector<std::string> Pre_processor::run(){
                         Token& parameter_token = tokens[i];
                         std::vector<std::string> splited_token = Utils::split(parameter_token.first, ',');
 
-                        for(int i = 0; i < splited_token.size(); i++){
+                        for(int i = 0; i < (int) splited_token.size(); i++){
                             parameters['1' + i] = splited_token[i];
                         }
 
@@ -268,7 +269,7 @@ std::vector<std::string> Pre_processor::run(){
                             // New token string
                             std::string new_token;
                             splited_token = Utils::split(pair.first, ',');
-                            for(int i = 0; i < splited_token.size(); i++){
+                            for(int i = 0; i < (int) splited_token.size(); i++){
                                 if(i) new_token += ",";
                                 // Transform #1 to respective parameter
                                 new_token += parameters[splited_token[i][1]];
@@ -297,7 +298,7 @@ std::vector<std::string> Pre_processor::run(){
                 std::string current_parameter;
                 std::vector<std::string> splited_token = Utils::split(tokens[2].first, ',');
 
-                for(int i = 0; i < splited_token.size(); i++){
+                for(int i = 0; i < (int) splited_token.size(); i++){
                     current_parameter = splited_token[i];
                     // Remove &
                     current_parameter.erase(current_parameter.begin());
@@ -313,7 +314,6 @@ std::vector<std::string> Pre_processor::run(){
             getline(__file_pointer,line);
             tokens = _filter_line(line);
             while(tokens[0].second != ENDMACRO){
-                tokens.push_back(std::make_pair("\n", 11));
                 // Checks if have &parameter, in order to change to the generic in MDT
                 for(Token &pair : tokens){
                     // If is not &, then don't need to change
@@ -323,7 +323,7 @@ std::vector<std::string> Pre_processor::run(){
                     // Split tokens by ','
                     std::vector<std::string> splited_token = Utils::split(pair.first, ',');
                     // Iterate through splited token
-                    for(int i = 0; i < splited_token.size(); i++){
+                    for(int i = 0; i < (int) splited_token.size(); i++){
                         // Add ',' if have more than 1 parameter
                         if(i) new_token += ",";
                         // Get splited parameter
@@ -398,7 +398,7 @@ void Pre_processor::_expand_ifs(std::vector<Token> curr_tokens){
             std::string line;
             while( getline(__file_pointer, line) ){
                 std::vector<Token> tokens = _filter_line(line);
-                if(tokens.size() != 0){
+                if(tokens.size() != 1){
                     break;
                 }
             }
