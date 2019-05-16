@@ -76,10 +76,10 @@ class Pre_processor {
 
     // EQU values
     std::map<std::string, int> __equs;
-    void _expand_equs(std::vector<Token> curr_tokens);
+    void _expand_equs(std::vector<Token> curr_tokens, int& curr_line);
 
     // Expand IFs
-    void _expand_ifs(std::vector<Token> curr_tokens);
+    void _expand_ifs(std::vector<Token> curr_tokens, int& curr_line);
 
 public:
     // Constructors
@@ -219,12 +219,13 @@ std::vector<std::string> Pre_processor::run(){
     
     std::vector<std::string> processed_file;
     std::string line;
-
+    int curr_line = 0;
     while(getline(__file_pointer,line)){
         bool has_equ = false;
         bool has_macro = false;
         bool has_if = false;
         std::vector<Token> tokens = _filter_line(line);
+        curr_line++;
         if(tokens.size() == 1) continue;    // Empty line contains only ENDL token
 
         for(int i = 0; i < (int) tokens.size(); i++){
@@ -313,6 +314,7 @@ std::vector<std::string> Pre_processor::run(){
             // Read all next line until ENDMACRO
             getline(__file_pointer,line);
             tokens = _filter_line(line);
+            curr_line++;
             while(tokens[0].second != ENDMACRO){
                 // Checks if have &parameter, in order to change to the generic in MDT
                 for(Token &pair : tokens){
@@ -343,6 +345,7 @@ std::vector<std::string> Pre_processor::run(){
                 // Read all next line until ENDMACRO
                 getline(__file_pointer,line);
                 tokens = _filter_line(line);
+                curr_line++;
             }
             // Remove last duplicated \n token
             __MDT[__macro_id].pop_back();
@@ -354,13 +357,13 @@ std::vector<std::string> Pre_processor::run(){
         // EXPAND IF - IF <value> <\n>
         // IF line not added to preprocessed file
         else if(has_if){
-            _expand_ifs(tokens);
+            _expand_ifs(tokens, curr_line);
             continue;
         }
         // EXPAND EQU - LABEL: EQU VALUE <\n>
         // EQU definition line not added to preprocessed file
         else if(has_equ){
-            _expand_equs(tokens);
+            _expand_equs(tokens, curr_line);
             continue;
         }
         // TODO: Talvez devemos considerar retornar direto o vetor de tokens
@@ -390,7 +393,7 @@ std::vector<std::string> Pre_processor::run(){
     return processed_file;
 }
 
-void Pre_processor::_expand_ifs(std::vector<Token> curr_tokens){
+void Pre_processor::_expand_ifs(std::vector<Token> curr_tokens, int& curr_line){
     // FIXME: Verificar se argumento do IF é um número
     if( curr_tokens.size() == 3){
         if(curr_tokens[1].first == "0"){
@@ -398,6 +401,7 @@ void Pre_processor::_expand_ifs(std::vector<Token> curr_tokens){
             std::string line;
             while( getline(__file_pointer, line) ){
                 std::vector<Token> tokens = _filter_line(line);
+                curr_line++;
                 if(tokens.size() != 1){
                     break;
                 }
@@ -409,7 +413,7 @@ void Pre_processor::_expand_ifs(std::vector<Token> curr_tokens){
 }
 
 
-void Pre_processor::_expand_equs(std::vector<Token> curr_tokens){
+void Pre_processor::_expand_equs(std::vector<Token> curr_tokens, int& curr_line){
     // FIXME: Verificar se argumento do EQU é um número
     if( curr_tokens.size() == 4 && 
         curr_tokens[0].second == LABEL &&
