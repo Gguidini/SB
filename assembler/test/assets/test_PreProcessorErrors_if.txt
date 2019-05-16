@@ -1,8 +1,12 @@
 LABEL: EQU 1
+FALSE: EQU 0
 
 IF LABEL    ; IF correto
 if LABEL    ; IF correto
 If LABEL    ; IF correto
+
+IF FALSE    ; Verifica se numero das linhas de erro estara ok
+STOP        ; Essa linha nao vai existir
 
 LABEL: IF   ; Uso errado
 IF IF       ; IF com argumento inválido

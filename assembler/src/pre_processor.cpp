@@ -394,21 +394,33 @@ std::vector<std::string> Pre_processor::run(){
 }
 
 void Pre_processor::_expand_ifs(std::vector<Token> curr_tokens, int& curr_line){
-    // FIXME: Verificar se argumento do IF é um número
+    // IF ARG \n
     if( curr_tokens.size() == 3){
-        if(curr_tokens[1].first == "0"){
-            // Não inclui a próxima linha
-            std::string line;
-            while( getline(__file_pointer, line) ){
-                std::vector<Token> tokens = _filter_line(line);
-                curr_line++;
-                if(tokens.size() != 1){
-                    break;
+        if(curr_tokens[0].second == IF && curr_tokens[1].second == -1){
+            if(Utils::is_digit(curr_tokens[1].first)){
+                if(curr_tokens[1].first == "0"){
+                    // Não inclui a próxima linha
+                    std::string line;
+                    while( getline(__file_pointer, line) ){
+                        std::vector<Token> tokens = _filter_line(line);
+                        curr_line++;
+                        if(tokens.size() != 1){
+                            break;
+                        }
+                    }
                 }
+            } else {
+            __errs.push_back(Error(SYN_ERR, curr_line, "Argumento do IF deve ser numerico."));
             }
+        } else {
+            __errs.push_back(Error(SYN_ERR, curr_line, "IF mal formado. Sintaxe: IF ARG"));
         }
     } else {
-        // TODO: IF errors
+        if(curr_tokens.size() > 3){
+            __errs.push_back(Error(SYN_ERR, curr_line, "Muitos argumentos para diretiva IF"));
+        } else {
+            __errs.push_back(Error(SYN_ERR, curr_line, "Poucos argumentos para diretiva IF"));
+        }
     }
 }
 
@@ -422,7 +434,7 @@ void Pre_processor::_expand_equs(std::vector<Token> curr_tokens, int& curr_line)
             if(Utils::is_digit(curr_tokens[2].first)){
             __equs[curr_tokens[0].first] = stoi(curr_tokens[2].first);
             } else {
-                __errs.push_back(Error(SYN_ERR, curr_line, "Argumento EQU deve ser numérico"));
+                __errs.push_back(Error(SYN_ERR, curr_line, "Argumento EQU deve ser numerico"));
             }
             // EQU usada corretamente
         } else {
