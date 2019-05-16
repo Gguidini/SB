@@ -120,7 +120,6 @@ TEST_CASE("Testing filter lines for EQU"){
 TEST_CASE("Testing detection of lexical errors", "[error]"){
     Pre_processor proc("assets/test_filter_lines_error.txt");
     proc.run();
-    proc.generate_output();
     REQUIRE(proc.get_done());
     std::vector<Error> errs = proc.get_errors();
     REQUIRE(errs.size() == 5);

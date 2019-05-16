@@ -39,7 +39,7 @@ TEST_CASE("Identifies MACRO errors", "[error]"){
     Pre_processor proc("assets/test_PreProcessorErrors_macro.txt");
     proc.run();
     std::vector<Error> err = proc.get_errors();
-    REQUIRE((err.size()) == 4);
+    REQUIRE((err.size()) == 6);
 
     REQUIRE(err[0].get_code() == LEX_ERR);
     REQUIRE(err[0].get_line() == 1);
@@ -54,6 +54,14 @@ TEST_CASE("Identifies MACRO errors", "[error]"){
     std::cout << err[2] << std::endl;
 
     REQUIRE(err[3].get_code() == SYN_ERR);
-    std::cout << err[3] << std::endl;
     REQUIRE(err[3].get_line() == 15);
+    std::cout << err[3] << std::endl;
+
+    REQUIRE(err[4].get_code() == SYN_ERR);
+    REQUIRE(err[4].get_line() == 20);
+    std::cout << err[4] << std::endl;
+
+    REQUIRE(err[5].get_code() == LEX_ERR);
+    REQUIRE(err[5].get_line() == 25);
+    std::cout << err[5] << std::endl;
 }

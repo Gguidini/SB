@@ -16,3 +16,16 @@ ERROR4: MACRO &A, &B, &C, &D  ; Macro com mais de 3 parametros
 COPY &A, &B
 ADD &C
 ENDMACRO
+
+ERROR5: &A, &B MACRO    ; Macro fora de ordem
+ADD A
+STORE B
+ENDMACRO
+
+ERROR6: MACRO &1batata  ; Parametro com token inválido
+ADD &1batata
+ENDMACRO
+
+OK: MACRO       ; ENDMACRO na mesma linha que o resto
+ADD N           ; Erro ou não?
+STORE N ENDMACRO
