@@ -311,15 +311,27 @@ std::vector<std::string> Pre_processor::run(){
             // Hash map to order current parameter to generic parameter in MDT
             std::unordered_map< std::string,char> parameters;
             // If have 3 tokens, then will be label, macro and parameters
+            if(tokens[0].second != LABEL){
+                __errs.push_back(Error(SYN_ERR, curr_line, "Macro sem label"));
+                tokens.insert(tokens.begin(), Token("UNDEFINED" + std::to_string(tokens.size()), LABEL));
+            }
             if(tokens.size() == 4){
                 
                 std::string current_parameter;
                 std::vector<std::string> splited_token = Utils::split(tokens[2].first, ',');
 
+                if((int) splited_token.size() > 3){
+                    __errs.push_back(Error(SYN_ERR, curr_line, "Macro com mais de 3 parametros (" + std::to_string(splited_token.size()) + ")"));
+                }
+
                 for(int i = 0; i < (int) splited_token.size(); i++){
                     current_parameter = splited_token[i];
-                    // Remove &
-                    current_parameter.erase(current_parameter.begin());
+                    if(current_parameter[0] != '&'){
+                        __errs.push_back(Error(LEX_ERR, curr_line, "Parametro inválido"));
+                    } else{
+                        // Remove &
+                        current_parameter.erase(current_parameter.begin());
+                    }
                     // Create hash table with Parameter and current generic ID
                     parameters[current_parameter] = '1' + i;
                 }
@@ -350,7 +362,11 @@ std::vector<std::string> Pre_processor::run(){
                         // Erase &
                         current_parameter.erase(current_parameter.begin());
                         // Add # + Current ID
-                        new_token = new_token + "#" + parameters[current_parameter];
+                        if(parameters.count(current_parameter)){
+                            new_token = new_token + "#" + parameters[current_parameter];
+                        } else{
+                            __errs.push_back(Error(SYN_ERR, curr_line, "Parametro não declarado &" + current_parameter));
+                        }
                     }
                     // New token with generic parameter
                     pair.first = new_token;
