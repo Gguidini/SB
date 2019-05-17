@@ -346,8 +346,11 @@ std::vector<std::string> Pre_processor::run(){
             std::unordered_map< std::string,char> parameters;
             // If have 3 tokens, then will be label, macro and parameters
             if(tokens[0].second != LABEL){
-                __errs.push_back(Error(SYN_ERR, curr_line, "Macro sem label"));
+                __errs.push_back(Error(SYN_ERR, curr_line, "MACRO sem label"));
                 tokens.insert(tokens.begin(), Token("UNDEFINED" + std::to_string(tokens.size()), LABEL));
+            }
+            if(tokens[1].second != MACRO){
+                __errs.push_back(Error(SYN_ERR, curr_line, "Estrutura da MACRO na ordem incorreta"));
             }
             if(tokens.size() == 4){
                 
@@ -355,13 +358,13 @@ std::vector<std::string> Pre_processor::run(){
                 std::vector<std::string> splited_token = Utils::split(tokens[2].first, ',');
 
                 if((int) splited_token.size() > 3){
-                    __errs.push_back(Error(SYN_ERR, curr_line, "Macro com mais de 3 parametros (" + std::to_string(splited_token.size()) + ")"));
+                    __errs.push_back(Error(SYN_ERR, curr_line, "MACRO com mais de 3 parametros (" + std::to_string(splited_token.size()) + ")"));
                 }
 
                 for(int i = 0; i < (int) splited_token.size(); i++){
                     current_parameter = splited_token[i];
                     if(current_parameter[0] != '&'){
-                        __errs.push_back(Error(LEX_ERR, curr_line, "Parametro inválido"));
+                        __errs.push_back(Error(LEX_ERR, curr_line, "Parametro de MACRO inválido"));
                     } else{
                         // Remove &
                         current_parameter.erase(current_parameter.begin());

@@ -30,4 +30,16 @@ OK: MACRO       ; ENDMACRO na mesma linha que o resto
 ADD N           ; Erro ou não?
 STORE N ENDMACRO
 
+CERTO: MACRO ; Macro correta para ser chamada dentro da proxima macro
+ADD N
+ADD Y
+ENDMACRO
+
+MACROCHAMAMACRO: MACRO ; Macro que chama outra macro
+ADD X
+CERTO
+ADD Z
+CERTO
+ENDMACRO
+
 SECTION TEXT    ; Evita erro seção texto faltante
