@@ -13,3 +13,5 @@ IF IF       ; IF com argumento inválido
 IF LABEL 2  ; Muitos argumentos
 IF          ; Poucos argumentos
 IF batata   ; IF sem argumento numérico
+
+SECTION TEXT    ; Evita erro seção texto faltante

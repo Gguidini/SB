@@ -5,3 +5,5 @@ Label#Invalida:
 Label&Invalida:
 Label,Invalida:
 LabelGigantescaDesnecessariamenteMeuDeusDoCeuPorque:
+
+SECTION TEXT    ; Evita gerar o erro de seção texto faltante

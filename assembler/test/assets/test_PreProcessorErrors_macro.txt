@@ -29,3 +29,5 @@ ENDMACRO
 OK: MACRO       ; ENDMACRO na mesma linha que o resto
 ADD N           ; Erro ou não?
 STORE N ENDMACRO
+
+SECTION TEXT    ; Evita erro seção texto faltante
