@@ -1,0 +1,20 @@
+; Testing creation of Symbol Table
+LABEL: EQU 10   ; Not on the Table
+
+LABEL1: MACRO   ; Not on the Table
+    ADD A
+    ADD B
+    ENDMACRO
+
+SECTION TEXT
+FOR: INPUT N
+     LOAD N
+     STOP
+OUT:
+     OUTPUT N
+
+SECTION DATA
+N: SPACE
+ONE: CONST 1
+ZERO: CONST 0
+VEC: SPACE 4

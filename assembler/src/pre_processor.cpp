@@ -12,10 +12,11 @@
 #include "../lib/opcodes.h"
 #include "../lib/utils.h"
 #include "errors.cpp"
+#include "symbols.cpp"
 
 // defines for Sections
-//#define TEXT 1
-//#define DATA 0
+#define SEC_TEXT 101
+#define SEC_DATA 102
 
 // defines token symbols
 #define LABEL 0
@@ -81,7 +82,8 @@ class Pre_processor {
     std::string __output_name;          // Name of output file
     std::ifstream __file_pointer;       // Input file pointer
     bool __done;                        // If processed the entire file
-    std::vector<Error> __errs;
+    std::vector<Error> __errs;          // Vector of Errors
+    std::unordered_map<std::string, Symbol> __symbol_table;  // Symbol table
     
     // Macro values
     int __macro_id;
@@ -105,6 +107,7 @@ public:
     std::string get_output_name() {return __output_name;}
     std::ifstream& get_file_pointer(){return __file_pointer;}
     std::vector<Error> get_errors(){return __errs;}
+    std::unordered_map<std::string, Symbol> get_symbol_table(){return __symbol_table;}
     bool get_done(){return __done;}
     // Run
     std::vector<std::string> run();
@@ -256,6 +259,7 @@ std::vector<std::string> Pre_processor::run(){
             continue;
         } else {
             // Line with anything not empty and not only label
+            // So should be processed
             tokens.insert(tokens.end(), tokens_to_add.begin(), tokens_to_add.end());
         }
         for(int i = 0; i < (int) tokens.size(); i++){
