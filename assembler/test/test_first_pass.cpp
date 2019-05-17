@@ -52,6 +52,22 @@ TEST_CASE("Symbol table creation", "[fst_pass]"){
     REQUIRE_FALSE(The_table["VEC"].can_jump());
 }
 
+TEST_CASE("Test SECTION detection", "[section]"){
+    Pre_processor proc("assets/test_section_error.txt");
+    proc.run();
+    std::vector<Error> errs = proc.get_errors();
+    REQUIRE(errs.size() == 4);
+    REQUIRE(errs[0].get_code() == SEM_ERR);
+    REQUIRE(errs[0].get_line() == 2);
+    REQUIRE(errs[1].get_code() == SEM_ERR);
+    REQUIRE(errs[2].get_code() == SEM_ERR);
+    REQUIRE(errs[2].get_line() == 3);
+    REQUIRE(errs[3].get_code() == SEM_ERR);
+    REQUIRE(errs[3].get_line() == 4);
+    for(Error err : errs){
+        std::cout << err << std::endl;
+    }
+}
 // TODO: Detecção de erros
 // Duas labels seguidas é erro
 // Label já definida

@@ -15,6 +15,7 @@
 #include "symbols.cpp"
 
 // defines for Sections
+#define SEC 100
 #define SEC_TEXT 101
 #define SEC_DATA 102
 
@@ -50,6 +51,8 @@ bool create_tagged_token(std::string str, Token& tok){
         tok = std::make_pair(str, ENDMACRO);
     } else if(is_opcode(test)){
         tok = std::make_pair(str, OP);
+    } else if(test == "SECTION") {
+        tok = std::make_pair(str, SEC);
     } else {
         tok = std::make_pair(str, -1);
     }
@@ -97,6 +100,10 @@ class Pre_processor {
     // Expand IFs
     void _expand_ifs(std::vector<Token> curr_tokens, int& curr_line);
 
+    // Sections
+    bool __section_data;
+    bool __section_text;
+
 public:
     // Constructors
     Pre_processor();
@@ -124,6 +131,8 @@ Pre_processor::Pre_processor(){
     __input_name = "";
     __output_name = "";
     __done = false;
+    __section_data = false;
+    __section_text = false;
     __macro_id = 0;
     __errs = std::vector<Error>();
 }
@@ -134,7 +143,10 @@ Pre_processor::Pre_processor(std::string input_name){
     __buffer = std::vector<std::string>();
     __output_name = input_name.substr(0, input_name.size() - 4) + ".pre";
     __done = false;
+    __section_data = false;
+    __section_text = false;
     __errs = std::vector<Error>();
+    __symbol_table = std::unordered_map<std::string, Symbol>();
     __macro_id = 0;
     __input_name = input_name;
     // Verifica se extensão é .txt
