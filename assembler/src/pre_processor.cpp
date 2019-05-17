@@ -382,8 +382,13 @@ std::vector<std::string> Pre_processor::run(){
             tokens = _filter_line(line, curr_line);
             curr_line++;
             while(tokens[0].second != ENDMACRO){
+
+                bool has_endmacro = false;
+
                 // Checks if have &parameter, in order to change to the generic in MDT
                 for(Token &pair : tokens){
+                    // ENMACRO not alone in a line
+                    if(pair.first == "ENDMACRO") has_endmacro = true;
                     // If is not &, then don't need to change
                     if(pair.first[0] != '&') continue;
                     // New generic token with correct parameters                    
@@ -409,10 +414,15 @@ std::vector<std::string> Pre_processor::run(){
                     pair.first = new_token;
                 }
 
+                // Read all next line until ENDMACRO
+                if(has_endmacro){
+                    __errs.push_back(Error(SEM_ERR, curr_line, "ENDMACRO na posição inválida"));
+                    break;
+                }
+
                 // Append tokens from that macro in MDT table
                 __MDT[__macro_id].insert(__MDT[__macro_id].end(), tokens.begin(), tokens.end());
 
-                // Read all next line until ENDMACRO
                 getline(__file_pointer,line);
                 tokens = _filter_line(line, curr_line);
                 curr_line++;
