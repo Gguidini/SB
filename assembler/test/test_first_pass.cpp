@@ -57,13 +57,17 @@ TEST_CASE("Test SECTION detection", "[section]"){
     proc.run();
     std::vector<Error> errs = proc.get_errors();
     REQUIRE(errs.size() == 4);
-    REQUIRE(errs[0].get_code() == SEM_ERR);
+    // Section UNDEFINED
+    REQUIRE(errs[0].get_code() == SYN_ERR);
     REQUIRE(errs[0].get_line() == 2);
+    // Redefinition of section data
     REQUIRE(errs[1].get_code() == SEM_ERR);
-    REQUIRE(errs[2].get_code() == SEM_ERR);
-    REQUIRE(errs[2].get_line() == 3);
+    REQUIRE(errs[1].get_line() == 3);
+    // Section with no parameter
+    REQUIRE(errs[2].get_code() == SYN_ERR);
+    REQUIRE(errs[2].get_line() == 4);
+    // Section text missing
     REQUIRE(errs[3].get_code() == SEM_ERR);
-    REQUIRE(errs[3].get_line() == 4);
     for(Error err : errs){
         std::cout << err << std::endl;
     }

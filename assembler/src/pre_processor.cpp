@@ -103,6 +103,7 @@ class Pre_processor {
     // Sections
     bool __section_data;
     bool __section_text;
+    int _identify_section(std::vector<Token> tokens, int& curr_line, int i, int curr_section);
 
 public:
     // Constructors
@@ -252,6 +253,7 @@ std::vector<std::string> Pre_processor::run(){
     std::vector<std::string> processed_file;
     std::string line;
     int curr_line = 0;
+    int curr_section = -1;
     std::vector<Token> tokens = std::vector<Token>();   // Empty token vector
     while(getline(__file_pointer,line)){
         bool has_equ = false;
@@ -274,6 +276,7 @@ std::vector<std::string> Pre_processor::run(){
             // So should be processed
             tokens.insert(tokens.end(), tokens_to_add.begin(), tokens_to_add.end());
         }
+
         for(int i = 0; i < (int) tokens.size(); i++){
             Token &pair = tokens[i];
             if(pair.second == EQU){
@@ -282,6 +285,8 @@ std::vector<std::string> Pre_processor::run(){
                 has_macro = true;
             } else if(pair.second == IF){
                 has_if = true;
+            } else if(pair.second == SEC) {
+                curr_section = _identify_section(tokens, curr_line, i, curr_section);
             } else if(pair.second == -1){
                 // Prováveis LABELS em uso
                 if(__equs.find(pair.first) != __equs.end()){
@@ -454,9 +459,41 @@ std::vector<std::string> Pre_processor::run(){
         tokens.clear();
     }
 
+    if(__section_text == false){
+        // Section text missing
+        __errs.push_back(Error(SEM_ERR, 0, "Section text faltando"));
+    }
     __done = true;
     __buffer = processed_file;
     return processed_file;
+}
+
+// _identify_section identifica qual a seção que está sendo aberta.
+// Faz o handling de erros também.
+// Retorna qual a seção atual a partir desta linha
+int Pre_processor::_identify_section(std::vector<Token> tokens, int& curr_line, int i, int curr_section){
+    // sempre terá ao menos um token na frente, o ENDL
+    if(tokens[i+1].second == ENDL){
+        // SECTION sem nada na frente
+        __errs.push_back(Error(SYN_ERR, curr_line, "Section indefinida"));
+    } else if(Utils::to_upper(tokens[i+1].first) == "TEXT"){
+        if(__section_text == true){
+            // Section TEXT redefinition
+            __errs.push_back(Error(SEM_ERR, curr_line, "Section text redefinida"));
+        }
+        __section_text = true;
+        return SEC_TEXT;
+    } else if(Utils::to_upper(tokens[i+1].first) == "DATA"){
+        if(__section_data == true){
+            // Section data redefinition
+            __errs.push_back(Error(SEM_ERR, curr_line, "Section data redefinida"));        
+        }
+        __section_data = true;
+        return SEC_DATA;
+    } else {
+        __errs.push_back(Error(SYN_ERR, curr_line, "Section " + tokens[i+1].first + " eh invalida"));   
+    }
+    return curr_section;
 }
 
 void Pre_processor::_expand_ifs(std::vector<Token> curr_tokens, int& curr_line){
