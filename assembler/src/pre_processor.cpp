@@ -56,7 +56,7 @@ bool create_tagged_token(std::string str, Token& tok){
         tok = std::make_pair(test, EQU);
     } else if(test == "IF"){
         tok = std::make_pair(test, IF);
-    } else if(test == "ENDMACRO"){
+    } else if(test == "ENDMACRO" || test == "END"){
         tok = std::make_pair(test, ENDMACRO);
     } else if(is_opcode(test)){
         tok = std::make_pair(test, OP);
@@ -88,7 +88,8 @@ int lex_analyser(std::string token){
     std::vector<std::string> ops = {
         "ADD", "SUB", "MULT", "DIV", "JMP", "JMPN", "JMPP",
         "JMPZ", "COPY", "LOAD", "STORE", "INPUT", "OUTPUT",
-        "STOP", "MACRO", "EQU", "IF", "SPACE", "CONST"};
+        "STOP", "MACRO", "EQU", "IF", "SPACE", "CONST", "END",
+        "ENDMACRO"};
     for(std::string str : ops){
         if(token == str) return 2;
     }
@@ -316,6 +317,7 @@ std::vector<Token> Pre_processor::run(){
 
         for(int i = 0; i < (int) tokens.size(); i++){
             Token &pair = tokens[i];
+
             if(pair.second == EQU){
                 // Marca que haverá processamento de EQU
                 has_equ = true;
@@ -372,6 +374,7 @@ std::vector<Token> Pre_processor::run(){
                         int label_id = __MNT[pair.first].second;
                         tokens[i] = __MDT[label_id][0];
                         tokens.insert(tokens.begin() + i + 1, __MDT[label_id].begin() + 1, __MDT[label_id].end());
+                        i--;
                     } else{
                         // Hash map that insert current id and return respective parameter
                         std::unordered_map<char,std::string> parameters;
@@ -410,6 +413,7 @@ std::vector<Token> Pre_processor::run(){
                         tokens[i] = fixed_tokens[1];
                         // Insert the remaining macro token
                         tokens.insert(tokens.begin() + i + 1, fixed_tokens.begin() + 2, fixed_tokens.end());
+                        i--;
                     }
                 }
             }

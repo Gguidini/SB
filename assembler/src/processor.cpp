@@ -124,7 +124,6 @@ std::string Processor::get_full_line(int &i){
 std::vector<int> Processor::run(){
     std::unordered_map<std::string, Instruction> instructions = table_of_instructions();
     int curr_line = 1;
-    
     for(int i = 0; i < (int)__tokens.size(); i++){
         Token &pair = __tokens[i];
 
@@ -226,11 +225,7 @@ std::vector<int> Processor::run(){
                         __errs.push_back(Error(SYN_ERR, curr_line, "Instrução " + current_instruction.mnemonic() + " com mais de 1 parâmetro", __input_name));
                         
                         // Ignore the entire parameters of that line
-                        while(pair.first != "\n"){
-                            i++;
-                            pair = __tokens[i];
-                        }
-                        i--;
+                        get_endline(i);
                     }
                 }
                 // Invalid parameter, check if is an insctrction or not defined label
@@ -245,11 +240,8 @@ std::vector<int> Processor::run(){
                 }
 
                 // Ignore the rest of the line (case array not valid, then ignore all + OFFSET and that stuff)
-                while(pair.first != "\n"){
-                    i++;
-                    pair = __tokens[i];
-                }
-                i--;
+                get_endline(i);
+                
             
             // Instruction with 2 parameters
             } else if(current_instruction.operands() == 2){
@@ -376,11 +368,7 @@ std::vector<int> Processor::run(){
 
                     if(__tokens[i+1].first != "\n"){
                         __errs.push_back(Error(SYN_ERR, curr_line, "Instrução " + current_instruction.mnemonic() + " com mais de 1 parâmetro", __input_name));
-                        while(pair.first != "\n"){
-                            i++;
-                            pair = __tokens[i];
-                        }
-                        i--;
+                        get_endline(i);
                     }
                 } else{
                     __errs.push_back(Error(SEM_ERR, curr_line, "Parâmetro " + pair.first + " não definido", __input_name));
@@ -473,11 +461,7 @@ std::vector<int> Processor::run(){
                 __errs.push_back(Error(SYN_ERR, curr_line, "Instrução CONST com mais de 1 parâmetro", __input_name));
 
                 // Ignore all the parameters in that line
-                while(pair.first != "\n"){
-                    i++;
-                    pair = __tokens[i];
-                }
-                i--;
+                 get_endline(i);
             }
 
         // IGNORE THAT LINE
