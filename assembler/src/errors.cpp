@@ -20,7 +20,7 @@ class Error {
 public:
     // Constructors
     Error();
-    Error(int code, int line, std::string msg);
+    Error(int code, int line, std::string msg, std::string file);
     // Getters
     int get_line() {return __err_line;}
     int get_code() {return __err_code;}
@@ -34,10 +34,11 @@ Error::Error(){
     __err_msg = "";
 }
 
-Error::Error(int code, int line, std::string msg){
+Error::Error(int code, int line, std::string msg, std::string file){
     __err_code = code;
     __err_line = line;
     __err_msg = msg;
+    __err_file = file;
 }
 
 std::ostream& operator <<(std::ostream& oss, Error& err){
@@ -52,7 +53,8 @@ std::ostream& operator <<(std::ostream& oss, Error& err){
         case SEM_ERR:
             oss << "[Erro Semantico]";
     }
-    oss << RESET << " " <<err.get_msg() <<". Linha: " << err.get_line();
+    oss << RESET << " Arquivo: " << err.get_file() << ":" << err.get_line();
+    oss << RED << " error: " << RESET << err.get_msg();
     return oss;
 }
 

@@ -10,7 +10,7 @@
 
 #include <iostream>
 #include <fstream>
-#include <unordered_map>
+#include <vector>
 
 #include "catch_framework.hpp"
 // Lib to test
@@ -18,13 +18,18 @@
 
 
 TEST_CASE("Test SECTION DATA", "[second_pass]"){
-    Pre_processor proc("assets/test_labels.txt");
+    Pre_processor pre_proc("assets/test_second_pass.txt");
+    std::vector<Token> tokens = pre_proc.run();
+    std::unordered_map<std::string, Symbol> symbols = pre_proc.get_symbol_table();
+    std::vector<Error> errs = pre_proc.get_errors();
+    REQUIRE((errs.size()) == 0);
+    Processor proc(tokens, symbols);
     proc.run();
-    std::vector<Error> errs = proc.get_errors();
+    errs = proc.get_errors();
+    REQUIRE((errs.size()) == 15);
     for(Error err : errs){
        std::cout << err << std::endl;
     }
-    REQUIRE((errs.size()) == 11);
     for(Error err : errs){
         REQUIRE(err.get_code() == SEM_ERR);
     }

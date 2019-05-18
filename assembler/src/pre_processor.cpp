@@ -241,9 +241,9 @@ std::vector<Token> Pre_processor::_filter_line(std::string &line, int lst_line){
         // Flush curr line and continue
         else if(c == ':'){
             if(lex_analyser(curr_token_str) == 1){
-                __errs.push_back(Error(LEX_ERR, lst_line + 1, "Label " + curr_token_str + " inválida"));
+                __errs.push_back(Error(LEX_ERR, lst_line + 1, "Label " + curr_token_str + " inválida", __input_name));
             } else if(lex_analyser(curr_token_str) == 2){
-                __errs.push_back(Error(SEM_ERR, lst_line + 1, "Palavra reservada " + curr_token_str + " nao pode ser uma label."));
+                __errs.push_back(Error(SEM_ERR, lst_line + 1, "Palavra reservada " + curr_token_str + " nao pode ser uma label.", __input_name));
             }
             next_tokens.push_back(std::make_pair(curr_token_str, LABEL));
             curr_token_str = "";
@@ -268,7 +268,6 @@ std::vector<Token> Pre_processor::_filter_line(std::string &line, int lst_line){
 
 // run processes de original file.
 // Saves processed lines in __buffer. Returns this value.
-// TODO: retornar vetor de Tokens para a segunda passagem.
 std::vector<Token> Pre_processor::run(){
     
     std::vector<std::string> processed_file;
@@ -323,13 +322,15 @@ std::vector<Token> Pre_processor::run(){
                 // Marca que possui uma label que talvez deva ir para a tabela de símbolos
                 has_label = true;
                 if(tokens[i+1].second == LABEL){
-                    __errs.push_back(Error(SEM_ERR, curr_line, "Duas labels com o mesmo valor (na mesma linha)"));
+                    __errs.push_back(Error(SEM_ERR, curr_line, "Duas labels com o mesmo valor (na mesma linha)", __input_name));
                 }
             } else if(pair.second == OP){
                 // Aumenta o contador de endereços
+                // TODO: Add erro de operação na Seção errada (data)
                 add_addrs += __instructions[pair.first].size();
             } else if(pair.second == DIR){
                 // Aumenta o contador de endereços
+                // TODO: Add erro de diretiva na Seção errada (text)
                 std::string err = "";
                 int v = Utils::digit_value(tokens[i+1].first, err);
                 if(Utils::to_upper(pair.first) == "CONST"){
@@ -337,10 +338,11 @@ std::vector<Token> Pre_processor::run(){
                 } else if(err == ""){
                     add_addrs += v;
                 } else if(err != "\n"){
-                    __errs.push_back(Error(LEX_ERR, curr_line, err));
+                    __errs.push_back(Error(LEX_ERR, curr_line, err, __input_name));
                 } else {
                     add_addrs += 1;
                 }
+
             } else if(pair.second == -1){
                 // Processa itens sem marcação.
                 // Prováveis LABELS em uso
@@ -401,11 +403,11 @@ std::vector<Token> Pre_processor::run(){
             std::unordered_map< std::string,char> parameters;
             // If have 3 tokens, then will be label, macro and parameters
             if(tokens[0].second != LABEL){
-                __errs.push_back(Error(SYN_ERR, curr_line, "MACRO sem label"));
+                __errs.push_back(Error(SYN_ERR, curr_line, "MACRO sem label", __input_name));
                 tokens.insert(tokens.begin(), Token("UNDEFINED" + std::to_string(tokens.size()), LABEL));
             }
             if(tokens[1].second != MACRO){
-                __errs.push_back(Error(SYN_ERR, curr_line, "Estrutura da MACRO na ordem incorreta"));
+                __errs.push_back(Error(SYN_ERR, curr_line, "Estrutura da MACRO na ordem incorreta", __input_name));
             }
             if(tokens.size() == 4){
                 
@@ -413,13 +415,13 @@ std::vector<Token> Pre_processor::run(){
                 std::vector<std::string> splited_token = Utils::split(tokens[2].first, ',');
 
                 if((int) splited_token.size() > 3){
-                    __errs.push_back(Error(SYN_ERR, curr_line, "MACRO com mais de 3 parametros (" + std::to_string(splited_token.size()) + ")"));
+                    __errs.push_back(Error(SYN_ERR, curr_line, "MACRO com mais de 3 parametros (" + std::to_string(splited_token.size()) + ")", __input_name));
                 }
 
                 for(int i = 0; i < (int) splited_token.size(); i++){
                     current_parameter = splited_token[i];
                     if(current_parameter[0] != '&'){
-                        __errs.push_back(Error(LEX_ERR, curr_line, "Parametro de MACRO inválido"));
+                        __errs.push_back(Error(LEX_ERR, curr_line, "Parametro de MACRO inválido", __input_name));
                     } else{
                         // Remove &
                         current_parameter.erase(current_parameter.begin());
@@ -462,7 +464,7 @@ std::vector<Token> Pre_processor::run(){
                         if(parameters.count(current_parameter)){
                             new_token = new_token + "#" + parameters[current_parameter];
                         } else{
-                            __errs.push_back(Error(SYN_ERR, curr_line, "Parametro não declarado &" + current_parameter));
+                            __errs.push_back(Error(SYN_ERR, curr_line, "Parametro não declarado &" + current_parameter, __input_name));
                         }
                     }
                     // New token with generic parameter
@@ -471,7 +473,7 @@ std::vector<Token> Pre_processor::run(){
 
                 // Read all next line until ENDMACRO
                 if(has_endmacro){
-                    __errs.push_back(Error(SEM_ERR, curr_line, "ENDMACRO na posição inválida"));
+                    __errs.push_back(Error(SEM_ERR, curr_line, "ENDMACRO na posição inválida", __input_name));
                     break;
                 }
 
@@ -505,13 +507,13 @@ std::vector<Token> Pre_processor::run(){
             // Entao esta label vai para a tabela de simbolos.
             // LABEL: <op ou dir>
             if(tokens[0].second != LABEL){
-                __errs.push_back(Error(SYN_ERR, curr_line, "Label deve estar no inicio da linha"));
+                __errs.push_back(Error(SYN_ERR, curr_line, "Label deve estar no inicio da linha", __input_name));
             }
             if(__symbol_table.find(tokens[0].first) != __symbol_table.end()){
-                __errs.push_back(Error(SEM_ERR, curr_line, "Redefinição de label " + tokens[0].first));
+                __errs.push_back(Error(SEM_ERR, curr_line, "Redefinição de label " + tokens[0].first, __input_name));
             }
             if(curr_section == -1){
-                __errs.push_back(Error(SEM_ERR, curr_line, "Label " + tokens[0].first + " precisa estar dentro de alguma section"));
+                __errs.push_back(Error(SEM_ERR, curr_line, "Label " + tokens[0].first + " precisa estar dentro de alguma section", __input_name));
             }
             bool jumpable = false, constant = false, const_zero = false, vector = false;
             int vec_size = 0;
@@ -520,7 +522,7 @@ std::vector<Token> Pre_processor::run(){
                 if(tokens[1].second == OP){
                     jumpable = true;
                 } else {
-                    __errs.push_back(Error(SEM_ERR, curr_line, "Label " + tokens[0].first + " não pode ser definida na section text"));
+                    __errs.push_back(Error(SEM_ERR, curr_line, "Label " + tokens[0].first + " não pode ser definida na section text", __input_name));
                 }
             } else if(curr_section == SEC_DATA){
                 // LABEL: <dir>
@@ -537,7 +539,7 @@ std::vector<Token> Pre_processor::run(){
                         }
                     }
                 } else{
-                    __errs.push_back(Error(SEM_ERR, curr_line, "Label " + tokens[0].first + " não pode ser definida na section data"));
+                    __errs.push_back(Error(SEM_ERR, curr_line, "Label " + tokens[0].first + " não pode ser definida na section data", __input_name));
                 }
             }
                     
@@ -574,7 +576,7 @@ std::vector<Token> Pre_processor::run(){
 
     if(__section_text == false){
         // Section text missing
-        __errs.push_back(Error(SEM_ERR, 0, "Section text faltando"));
+        __errs.push_back(Error(SEM_ERR, 0, "Section text faltando", __input_name));
     }
     __done = true;
     __buffer = processed_file;
@@ -588,23 +590,23 @@ int Pre_processor::_identify_section(std::vector<Token> tokens, int& curr_line, 
     // sempre terá ao menos um token na frente, o ENDL
     if(tokens[i+1].second == ENDL){
         // SECTION sem nada na frente
-        __errs.push_back(Error(SYN_ERR, curr_line, "Section indefinida"));
+        __errs.push_back(Error(SYN_ERR, curr_line, "Section indefinida",__input_name));
     } else if(Utils::to_upper(tokens[i+1].first) == "TEXT"){
         if(__section_text == true){
             // Section TEXT redefinition
-            __errs.push_back(Error(SEM_ERR, curr_line, "Section text redefinida"));
+            __errs.push_back(Error(SEM_ERR, curr_line, "Section text redefinida",__input_name));
         }
         __section_text = true;
         return SEC_TEXT;
     } else if(Utils::to_upper(tokens[i+1].first) == "DATA"){
         if(__section_data == true){
             // Section data redefinition
-            __errs.push_back(Error(SEM_ERR, curr_line, "Section data redefinida"));        
+            __errs.push_back(Error(SEM_ERR, curr_line, "Section data redefinida",__input_name));        
         }
         __section_data = true;
         return SEC_DATA;
     } else {
-        __errs.push_back(Error(SYN_ERR, curr_line, "Section " + tokens[i+1].first + " eh invalida"));   
+        __errs.push_back(Error(SYN_ERR, curr_line, "Section " + tokens[i+1].first + " eh invalida",__input_name));   
     }
     return curr_section;
 }
@@ -627,16 +629,16 @@ void Pre_processor::_expand_ifs(std::vector<Token> curr_tokens, int& curr_line){
                     }
                 }
             } else {
-            __errs.push_back(Error(SYN_ERR, curr_line, "Argumento do IF deve ser numerico."));
+            __errs.push_back(Error(SYN_ERR, curr_line, "Argumento do IF deve ser numerico.",__input_name));
             }
         } else {
-            __errs.push_back(Error(SYN_ERR, curr_line, "IF mal formado. Sintaxe: IF ARG"));
+            __errs.push_back(Error(SYN_ERR, curr_line, "IF mal formado. Sintaxe: IF ARG",__input_name));
         }
     } else {
         if(curr_tokens.size() > 3){
-            __errs.push_back(Error(SYN_ERR, curr_line, "Muitos argumentos para diretiva IF"));
+            __errs.push_back(Error(SYN_ERR, curr_line, "Muitos argumentos para diretiva IF",__input_name));
         } else {
-            __errs.push_back(Error(SYN_ERR, curr_line, "Poucos argumentos para diretiva IF"));
+            __errs.push_back(Error(SYN_ERR, curr_line, "Poucos argumentos para diretiva IF",__input_name));
         }
     }
 }
@@ -653,17 +655,17 @@ void Pre_processor::_expand_equs(std::vector<Token> curr_tokens, int& curr_line)
             if(err == ""){
                 __equs[curr_tokens[0].first] = v;
             } else {
-                __errs.push_back(Error(SYN_ERR, curr_line, "Argumento EQU deve ser numerico"));
+                __errs.push_back(Error(SYN_ERR, curr_line, "Argumento EQU deve ser numerico",__input_name));
             }
             // EQU usada corretamente
         } else {
-            __errs.push_back(Error(SYN_ERR, curr_line, "EQU mal formado. Sintaxe: LABEL: EQU ARG"));
+            __errs.push_back(Error(SYN_ERR, curr_line, "EQU mal formado. Sintaxe: LABEL: EQU ARG",__input_name));
         }
     } else {
         if(curr_tokens.size() > 4){
-            __errs.push_back(Error(SYN_ERR, curr_line, "Muitos argumentos para diretiva EQU"));
+            __errs.push_back(Error(SYN_ERR, curr_line, "Muitos argumentos para diretiva EQU",__input_name));
         } else {
-            __errs.push_back(Error(SYN_ERR, curr_line, "Poucos argumentos para diretiva EQU"));
+            __errs.push_back(Error(SYN_ERR, curr_line, "Poucos argumentos para diretiva EQU", __input_name));
         }
     }
 }
