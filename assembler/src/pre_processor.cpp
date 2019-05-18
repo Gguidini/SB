@@ -350,9 +350,8 @@ std::vector<Token> Pre_processor::run(){
                 if(Utils::to_upper(pair.first) == "CONST"){
                     add_addrs += 1;
                 } else if(err == ""){
-                    if(v < 0){
-                        __errs.push_back(Error(SEM_ERR, curr_line, "SPACE nao pode ser usado com numero negativo", __input_name));
-                        v = 0;
+                    if(v <= 0){
+                        v = 1;
                     }
                     add_addrs += v;
                 } else if(err != "\n"){
