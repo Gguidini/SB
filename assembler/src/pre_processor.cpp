@@ -171,6 +171,7 @@ Pre_processor::Pre_processor(std::string input_name){
     __file_pointer.open(input_name);
     // Verifica que conseguiu abrir o arquivo
     if(!__file_pointer.is_open()){
+        std::cout << "File " + __input_name + " not Found" << std::endl;
         throw "File " + __input_name + " not Found";
     }
 }
