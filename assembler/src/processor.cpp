@@ -77,7 +77,7 @@ Processor::Processor(std::vector<Token> tokens, std::unordered_map<std::string, 
 
 std::string Processor::generate_output(){
     if(!__done){
-        throw("Tentando gerar output sem pre-processar o arquivo\n");
+        throw("Tentando gerar output sem processar o arquivo\n");
     }
     
     std::ofstream fd(__output_name);
