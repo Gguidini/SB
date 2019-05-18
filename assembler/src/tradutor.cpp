@@ -75,7 +75,7 @@ int main(int argc, char **argv){
     }
 
     if(pre_proc_errors.size() > 0 || proc_errors.size() > 0){
-        std::cout << std::string('=', 50) << std::endl;
+        std::cout << std::string(50, '=') << std::endl;
 
         printf("ERROS:\n");
         for(Error err : pre_proc_errors){
