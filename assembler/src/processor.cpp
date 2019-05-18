@@ -53,7 +53,14 @@ public:
     std::vector<int> run();
     // Generate output
     std::string generate_output();
+
+    void get_endline(int &i);
+
+    std::string get_full_line(int &i);
 };
+
+
+
 
 // Processor sem arquivo de referência.
 // Nada é inicializado como válido.
@@ -90,6 +97,29 @@ std::string Processor::generate_output(){
     fd.close();
     return __output_name;
 }
+
+void Processor::get_endline(int &i){
+    Token pair = __tokens[i];
+    while(pair.first != "\n"){
+        i++;
+        pair = __tokens[i];
+    }
+    i--;
+}
+
+std::string Processor::get_full_line(int &i){
+    std::string ret = "";
+    
+    Token pair = __tokens[i];
+    while(pair.first != "\n"){
+        ret += pair.first;
+        i++;
+        pair = __tokens[i];
+    }
+    i--;
+    return ret;
+}
+
 
 std::vector<int> Processor::run(){
     std::unordered_map<std::string, Instruction> instructions = table_of_instructions();
@@ -137,11 +167,9 @@ std::vector<int> Processor::run(){
 
                     } else{
                         if(__tokens[i+1].first == "+"){
-                            while(pair.first != "\n"){
-                                i++;
-                                pair = __tokens[i];
-                            }
-                            i--;
+                            
+                            get_endline(i);
+                            
                             __errs.push_back(Error(SEM_ERR, curr_line, "Parâmetro " + pair.first + " NÃO é um array", __input_name));
                         } else{
                             if(current_instruction.mnemonic() == "DIV" and curr_symbol.is_const_zero()){
@@ -286,11 +314,9 @@ std::vector<int> Processor::run(){
 
                     } else{
                         if(__tokens[i+1].first == "+"){
-                            while(pair.first != "\n"){
-                                i++;
-                                pair = __tokens[i];
-                            }
-                            i--;
+                            
+                            get_endline(i);
+                            
                             __errs.push_back(Error(SEM_ERR, curr_line, "Parâmetro " + pair.first + " NÃO é um array", __input_name));
                         }
                     }
