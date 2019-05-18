@@ -10,9 +10,10 @@
 #ifndef UTILS_H
 #define UTILS_H
 
-#include<string>
-#include<vector>
-#include<map>
+#include <string>
+#include <vector>
+#include <algorithm>
+#include <map>
 
 namespace Utils {
 
@@ -62,10 +63,10 @@ int stox(std::string str, std::string &err){
    int sum = 0;
    for(int i = 0; i < 10; i++) value['0' + i] = i;
    for(int i = 10; i < 16; i++) value['A' + i - 10] = i;
-   reverse(str.begin(), str.end());
+   std::reverse(str.begin(), str.end());
    for(auto digit : str){
        if(! value.count(toupper(digit))){
-           reverse(str.begin(), str.end());
+           std::reverse(str.begin(), str.end());
            err = "Numero hexadecimal inválido (" + str + ")";
            return -1;
        }
@@ -80,6 +81,11 @@ int digit_value(std::string str, std::string & err){
         err = "\n";
         return 0;
     }
+    int sinal = 1;
+    if(str[0] == '-'){
+        sinal = -1;
+        str = str.substr(1,str.size()-1);
+    }
     if(is_digit(str)){
         return stoi(str);
     }
@@ -88,7 +94,7 @@ int digit_value(std::string str, std::string & err){
             err = "Número decimal inválido (" + str + ")";
             return -1;
         }
-        return stoi(str.substr(2,str.size() - 2));
+        return stoi(str.substr(2,str.size() - 2)) * sinal;
     }
     if(str[str.size()-1] == 'd'){
         if(str.size() == 1){
@@ -96,14 +102,14 @@ int digit_value(std::string str, std::string & err){
             return -1;
         }
         str.pop_back();
-        return stoi(str);
+        return stoi(str) * sinal;
     }
     if(str.substr(0, 2) == "0x"){
         if(str.size() == 2){
             err = "Número hexadecimal inválido (" + str + ")";
             return -1;
         }
-        return stox(str.substr(2,str.size() - 2), err);
+        return stox(str.substr(2,str.size() - 2), err) * sinal;
     }
     if(str[str.size()-1] == 'h'){
         if(str.size() == 1){
@@ -111,7 +117,7 @@ int digit_value(std::string str, std::string & err){
             return -1;
         }
         str.pop_back();
-        return stox(str, err);
+        return stox(str, err) * sinal;
     }
     err = "Número inválido (" + str + ")";
     return -1;

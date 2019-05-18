@@ -15,6 +15,7 @@
 #include "catch_framework.hpp"
 // Lib to test
 #include "../src/pre_processor.cpp"
+#include "../src/processor.cpp"
 
 
 TEST_CASE("Test SECTION DATA", "[second_pass]"){
@@ -23,14 +24,47 @@ TEST_CASE("Test SECTION DATA", "[second_pass]"){
     std::unordered_map<std::string, Symbol> symbols = pre_proc.get_symbol_table();
     std::vector<Error> errs = pre_proc.get_errors();
     REQUIRE((errs.size()) == 0);
-    Processor proc(tokens, symbols, "assets/a.txt");
+    Processor proc(tokens, symbols, "assets/test_second_pass_error.txt");
     proc.run();
     errs = proc.get_errors();
-    REQUIRE((errs.size()) == 15);
     for(Error err : errs){
        std::cout << err << std::endl;
     }
-    for(Error err : errs){
-        REQUIRE(err.get_code() == SEM_ERR);
-    }
+    REQUIRE((errs.size()) == 16);
+
+    REQUIRE(errs[0].get_code() == SEM_ERR);
+    //std::cout << errs[0] << std::endl;
+    REQUIRE(errs[1].get_code() == LEX_ERR);
+    //std::cout << errs[1] << std::endl;
+    REQUIRE(errs[2].get_code() == SEM_ERR);
+    //std::cout << errs[2] << std::endl;
+    REQUIRE(errs[3].get_code() == SYN_ERR);
+    //std::cout << errs[3] << std::endl;
+    REQUIRE(errs[4].get_code() == SEM_ERR);
+    //std::cout << errs[4] << std::endl;
+    REQUIRE(errs[5].get_code() == SEM_ERR);
+    //std::cout << errs[5] << std::endl;
+    REQUIRE(errs[6].get_code() == SEM_ERR);
+    //std::cout << errs[6] << std::endl;
+    REQUIRE(errs[7].get_code() == SEM_ERR);
+    //std::cout << errs[7] << std::endl;
+    REQUIRE(errs[8].get_code() == SEM_ERR);
+    //std::cout << errs[8] << std::endl;
+    REQUIRE(errs[9].get_code() == SEM_ERR);
+    //std::cout << errs[9] << std::endl;
+    REQUIRE(errs[10].get_code() == SEM_ERR);
+    //std::cout << errs[10 << std::endl;
+    REQUIRE(errs[11].get_code() == SEM_ERR);
+    //std::cout << errs[11 << std::endl;
+    REQUIRE(errs[12].get_code() == SEM_ERR);
+    //std::cout << errs[12 << std::endl;
+    REQUIRE(errs[13].get_code() == SEM_ERR);
+    //std::cout << errs[13 << std::endl;
+    REQUIRE(errs[14].get_code() == SEM_ERR);
+    //std::cout << errs[14 << std::endl;
+    REQUIRE(errs[15].get_code() == SEM_ERR);
+    //std::cout << errs[15 << std::endl;
+
+
+
 }

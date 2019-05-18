@@ -33,6 +33,7 @@ class Processor {
     std::vector<Token> __tokens;
     std::unordered_map<std::string, Symbol> __symbol_table;
     std::vector<Error> __errs;
+    std::string __input_name;
     std::string __output_name;
     std::vector<int> __object_code;
     bool __done;
@@ -40,7 +41,7 @@ class Processor {
 public:
     // Constructors
     Processor();
-    Processor(std::vector<Token> tokens, std::unordered_map<std::string, Symbol> symbol_table, std::string output_name);
+    Processor(std::vector<Token> tokens, std::unordered_map<std::string, Symbol> symbol_table, std::string input_name);
     // Getters
     std::vector<Token> get_tokens() {return __tokens;}
     std::unordered_map<std::string, Symbol> get_symbol_table(){return __symbol_table;}
@@ -65,11 +66,12 @@ Processor::Processor(){
 
 // Processor com arquivo de referência.
 // Arquivo de referência já é aberto.
-Processor::Processor(std::vector<Token> tokens, std::unordered_map<std::string, Symbol> symbol_table, std::string output_name){
+Processor::Processor(std::vector<Token> tokens, std::unordered_map<std::string, Symbol> symbol_table, std::string input_name){
     __tokens = tokens;
     __symbol_table = symbol_table;
     __errs = std::vector<Error>();
-    __output_name = output_name;
+    __input_name = input_name;
+    __output_name = input_name.substr(0, input_name.size() - 4) + ".obj";;
     __done = false;
 }
 
@@ -83,23 +85,13 @@ std::string Processor::generate_output(){
         throw("Algum erro aconteceu tentando gerar o arquivo de saída\n");
     }
     for(int value : __object_code){
-        std::cout << "INSERINDO O " << std::to_string(value) << " NO ARQUIVO " << __output_name << std::endl;
         fd << std::to_string(value) + " ";
     }
     fd.close();
     return __output_name;
 }
-/*
-    int get_value() {return __addrs;}
-    bool can_jump() {return __jumpable;}
-    bool is_const() {return __constant;}
-    bool is_const_zero() {return __const_zero;}
-    bool is_vector() {return __vector;}
-    int get_vector_size() {return __vector_size;}
-*/
 
 std::vector<int> Processor::run(){
-    int curr_addres = 1;
     std::cout << "tabela de symbles = " << std::endl;
     for ( auto it = __symbol_table.begin(); it != __symbol_table.end(); ++it )
         std::cout << it->first << ":" << it->second.can_jump() << " " << it->second.get_value() << std::endl;
@@ -110,19 +102,61 @@ std::vector<int> Processor::run(){
     for ( auto it = instructions.begin(); it != instructions.end(); ++it )
         std::cout << it->first << ":" << it->second.mnemonic() <<  std::endl;
 
-    for(int i = 0; i < __tokens.size(); i++){
+    int curr_line = 1;
+    for(int i = 0; i < (int)__tokens.size(); i++){
         Token &pair = __tokens[i];
-        // Eh instrução
-        if(instructions.count(pair.first)){
+        std::cout << "TOKEN = " << pair.first << std::endl;
+        if(pair.first == "\n"){
+            curr_line++;
+        } else if(instructions.count(pair.first)){
             Instruction current_instruction = instructions[pair.first];
             std::cout << "add o opcode " << current_instruction.opcode() << " que tem nome = " << current_instruction.mnemonic() << std::endl;
             __object_code.push_back(current_instruction.opcode());
-            for(int j = 0; j < current_instruction.operands(); j++){
+
+            if(current_instruction.operands() == 1){
                 i++;
                 pair = __tokens[i];
-                std::cout << "add o valor " << __symbol_table[pair.first].get_value() << " que tem nome = " << pair.first << std::endl;
-                __object_code.push_back(__symbol_table[pair.first].get_value());
+                std::cout << "TOKEN2 [1]= " << pair.first << std::endl;
+                if(__symbol_table.count(pair.first)){
+
+                    Symbol curr_symbol = __symbol_table[pair.first];
+
+                    if(curr_symbol.is_vector()){
+                        int offset;
+                        __errs.push_back(Error(SEM_ERR, curr_line, "Parâmetro " + pair.first + " é um array e não possui OFFSET", __input_name));
+                    } else if(!curr_symbol.is_vector() && __tokens[i+1].first == "+"){
+                        __errs.push_back(Error(SEM_ERR, curr_line, "Parâmetro " + pair.first + " NÃO é um array e está com OFFSET", __input_name));
+                    }
+
+                    std::cout << "add o valor " << __symbol_table[pair.first].get_value() << " que tem nome = " << pair.first << std::endl;
+                    __object_code.push_back(__symbol_table[pair.first].get_value());
+                }
+                else{
+                    __errs.push_back(Error(SEM_ERR, curr_line, "Parâmetro " + pair.first + " inválido", __input_name));
+                    __object_code.push_back(0);
+                }
+                while(pair.first != "\n"){
+                    i++;
+                    pair = __tokens[i];
+                }
+                i--;
             }
+
+            for(int j = 0; j < current_instruction.operands(); j++){
+            }
+        } else if(pair.first == "SPACE"){
+            __object_code.push_back(0);
+        } else if(pair.first == "CONST"){
+            i++;
+            pair = __tokens[i];
+            std::string err;
+            int value = Utils::digit_value(pair.first, err);
+            if(err == "")
+                __object_code.push_back(value);
+        } else if(pair.first == "SECTION"){
+            i++;
+        } else if(pair.second != LABEL){
+            __errs.push_back(Error(SEM_ERR, curr_line, "Comando " + pair.first + " inválido", __input_name));
         }
     }
 

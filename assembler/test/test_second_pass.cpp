@@ -32,7 +32,7 @@ TEST_CASE("Test Int to bynary program", "[second_pass]"){
     std::vector<Error> proc_errs = proc.get_errors();
     REQUIRE((proc_errs.size()) == 0);
     REQUIRE((object_code.size()) == (answer.size()));
-    for(int i = 0; i < answer.size(); i++){
+    for(int i = 0; i < (int)answer.size(); i++){
         REQUIRE(object_code[i] == answer[i]);
     }
 }

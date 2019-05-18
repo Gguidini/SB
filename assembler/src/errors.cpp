@@ -53,7 +53,7 @@ std::ostream& operator <<(std::ostream& oss, Error& err){
         case SEM_ERR:
             oss << "[Erro Semantico]";
     }
-    oss << RESET << " Arquivo: " << err.get_file() << ":" << err.get_line();
+    oss << RESET << " " << err.get_file() << ":" << err.get_line();
     oss << RED << " error: " << RESET << err.get_msg();
     return oss;
 }

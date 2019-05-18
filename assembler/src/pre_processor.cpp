@@ -1,5 +1,13 @@
 // The pre processor classes.
-// TODO: Update file description
+// Pre_processor executes the pre processing of program,
+// that is, identifies and expands EQUs, IFs and MACROs.
+// This class also performs the first pass in the assembly process,
+// That is, creates the symbol table for the program.
+// The process continues to the processor and output is generated only if no errors are found.
+// Outputs of this class include:
+// Pre-processed file (with pre processor directives expanded, comments and unnecessary tabs removed)
+// Symbol table
+// Vector of Tokens, for the Processor
 
 #ifndef PREPROCESSOR_H
 #define PREPROCESSOR_H
@@ -105,6 +113,7 @@ class Pre_processor {
     int __macro_id;
     std::unordered_map<std::string, std::pair<int,int> > __MNT;
     std::unordered_map<int, std::vector<Token>> __MDT;
+    void _expand_macros(std::vector<Token> tokens, int& curr_line);
 
     // EQU values
     std::map<std::string, int> __equs;
@@ -165,13 +174,13 @@ Pre_processor::Pre_processor(std::string input_name){
     __macro_id = 0;
     __input_name = input_name;
     // Verifica se extensão é .txt
-    if(__input_name.substr(__input_name.size() - 4, 4) != ".txt"){
-        throw "Arquivo " + __input_name + " não possui extensão correta (.txt)";
+    if(__input_name.substr(__input_name.size() - 4, 4) != ".txt" &&
+       __input_name.substr(__input_name.size() - 4, 4) != ".asm"){
+        throw "Arquivo " + __input_name + " não possui extensão correta (.txt ou .asm)";
     } 
     __file_pointer.open(input_name);
     // Verifica que conseguiu abrir o arquivo
     if(!__file_pointer.is_open()){
-        std::cout << "File " + __input_name + " not Found" << std::endl;
         throw "File " + __input_name + " not Found";
     }
 }
@@ -218,7 +227,7 @@ std::vector<Token> Pre_processor::_filter_line(std::string &line, int lst_line){
         // Separates tokens (space is used to separate tokens)
         else if(c == ' ' || c == '\t'){
             // Jump all spaces until end or next valid char
-            while(i < (int)line.size() and line[i] == ' ') i++;
+            while(i < (int)line.size() and (line[i] == ' ' or line[i] == '\t')) i++;
             if(i < (int)line.size() && line[i] == ':'){
                 i--;
                 continue;
@@ -327,16 +336,24 @@ std::vector<Token> Pre_processor::run(){
                 }
             } else if(pair.second == OP){
                 // Aumenta o contador de endereços
-                // TODO: Add erro de operação na Seção errada (data)
+                if(curr_section != SEC_TEXT){
+                    __errs.push_back(Error(SEM_ERR, curr_line, "Operação " + pair.first + " nao pode estar fora da section text", __input_name));
+                }
                 add_addrs += __instructions[pair.first].size();
             } else if(pair.second == DIR){
                 // Aumenta o contador de endereços
-                // TODO: Add erro de diretiva na Seção errada (text)
+                if(curr_section != SEC_DATA){
+                    __errs.push_back(Error(SEM_ERR, curr_line, "Diretiva " + pair.first + " nao pode estar fora da section data", __input_name));
+                }
                 std::string err = "";
                 int v = Utils::digit_value(tokens[i+1].first, err);
                 if(Utils::to_upper(pair.first) == "CONST"){
                     add_addrs += 1;
                 } else if(err == ""){
+                    if(v < 0){
+                        __errs.push_back(Error(SEM_ERR, curr_line, "SPACE nao pode ser usado com numero negativo", __input_name));
+                        v = 0;
+                    }
                     add_addrs += v;
                 } else if(err != "\n"){
                     __errs.push_back(Error(LEX_ERR, curr_line, err, __input_name));
@@ -398,97 +415,10 @@ std::vector<Token> Pre_processor::run(){
                 }
             }
         }
-        // EXPAND MACROS
         if(has_macro){
-            // Hash map to order current parameter to generic parameter in MDT
-            std::unordered_map< std::string,char> parameters;
-            // If have 3 tokens, then will be label, macro and parameters
-            if(tokens[0].second != LABEL){
-                __errs.push_back(Error(SYN_ERR, curr_line, "MACRO sem label", __input_name));
-                tokens.insert(tokens.begin(), Token("UNDEFINED" + std::to_string(tokens.size()), LABEL));
-            }
-            if(tokens[1].second != MACRO){
-                __errs.push_back(Error(SYN_ERR, curr_line, "Estrutura da MACRO na ordem incorreta", __input_name));
-            }
-            if(tokens.size() == 4){
-                
-                std::string current_parameter;
-                std::vector<std::string> splited_token = Utils::split(tokens[2].first, ',');
-
-                if((int) splited_token.size() > 3){
-                    __errs.push_back(Error(SYN_ERR, curr_line, "MACRO com mais de 3 parametros (" + std::to_string(splited_token.size()) + ")", __input_name));
-                }
-
-                for(int i = 0; i < (int) splited_token.size(); i++){
-                    current_parameter = splited_token[i];
-                    if(current_parameter[0] != '&'){
-                        __errs.push_back(Error(LEX_ERR, curr_line, "Parametro de MACRO inválido", __input_name));
-                    } else{
-                        // Remove &
-                        current_parameter.erase(current_parameter.begin());
-                    }
-                    // Create hash table with Parameter and current generic ID
-                    parameters[current_parameter] = '1' + i;
-                }
-                
-            }
-            // Insert macro name into MNT table, with current amount of paramenters and respective MDT id
-            __MNT[tokens[0].first] = std::make_pair(parameters.size(), ++__macro_id);
-
-            // Read all next line until ENDMACRO
-            getline(__file_pointer,line);
-            tokens = _filter_line(line, curr_line);
-            curr_line++;
-            while(tokens[0].second != ENDMACRO){
-
-                bool has_endmacro = false;
-
-                // Checks if have &parameter, in order to change to the generic in MDT
-                for(Token &pair : tokens){
-                    // ENMACRO not alone in a line
-                    if(pair.first == "ENDMACRO") has_endmacro = true;
-                    // If is not &, then don't need to change
-                    if(pair.first[0] != '&') continue;
-                    // New generic token with correct parameters                    
-                    std::string new_token, current_parameter;
-                    // Split tokens by ','
-                    std::vector<std::string> splited_token = Utils::split(pair.first, ',');
-                    // Iterate through splited token
-                    for(int i = 0; i < (int) splited_token.size(); i++){
-                        // Add ',' if have more than 1 parameter
-                        if(i) new_token += ",";
-                        // Get splited parameter
-                        current_parameter = splited_token[i];
-                        // Erase &
-                        current_parameter.erase(current_parameter.begin());
-                        // Add # + Current ID
-                        if(parameters.count(current_parameter)){
-                            new_token = new_token + "#" + parameters[current_parameter];
-                        } else{
-                            __errs.push_back(Error(SYN_ERR, curr_line, "Parametro não declarado &" + current_parameter, __input_name));
-                        }
-                    }
-                    // New token with generic parameter
-                    pair.first = new_token;
-                }
-
-                // Read all next line until ENDMACRO
-                if(has_endmacro){
-                    __errs.push_back(Error(SEM_ERR, curr_line, "ENDMACRO na posição inválida", __input_name));
-                    break;
-                }
-
-                // Append tokens from that macro in MDT table
-                __MDT[__macro_id].insert(__MDT[__macro_id].end(), tokens.begin(), tokens.end());
-
-                getline(__file_pointer,line);
-                tokens = _filter_line(line, curr_line);
-                curr_line++;
-            }
-            // Remove last duplicated \n token
-            __MDT[__macro_id].pop_back();
-
+            // EXPAND MACRO - LABEL: MACRO <&param1, &param2, &param3>
             // Don't add tokens to final file becaus macro definition don't appear in main final file
+            _expand_macros(tokens, curr_line);
             tokens.clear();
             continue;
         } else if(has_if){
@@ -610,6 +540,99 @@ int Pre_processor::_identify_section(std::vector<Token> tokens, int& curr_line, 
         __errs.push_back(Error(SYN_ERR, curr_line, "Section " + tokens[i+1].first + " eh invalida",__input_name));   
     }
     return curr_section;
+}
+
+// _expand_macros handles MACRO expansion.
+// Creates entries in MNT and MDT.
+void Pre_processor::_expand_macros(std::vector<Token> tokens, int& curr_line){
+    // Hash map to order current parameter to generic parameter in MDT
+    std::unordered_map< std::string,char> parameters;
+    // If have 3 tokens, then will be label, macro and parameters
+    if(tokens[0].second != LABEL){
+        __errs.push_back(Error(SYN_ERR, curr_line, "MACRO sem label", __input_name));
+        tokens.insert(tokens.begin(), Token("UNDEFINED" + std::to_string(tokens.size()), LABEL));
+    }
+    if(tokens[1].second != MACRO){
+        __errs.push_back(Error(SYN_ERR, curr_line, "Estrutura da MACRO na ordem incorreta", __input_name));
+    }
+    if(tokens.size() == 4){
+        
+        std::string current_parameter;
+        std::vector<std::string> splited_token = Utils::split(tokens[2].first, ',');
+
+        if((int) splited_token.size() > 3){
+            __errs.push_back(Error(SYN_ERR, curr_line, "MACRO com mais de 3 parametros (" + std::to_string(splited_token.size()) + ")", __input_name));
+        }
+
+        for(int i = 0; i < (int) splited_token.size(); i++){
+            current_parameter = splited_token[i];
+            if(current_parameter[0] != '&'){
+                __errs.push_back(Error(LEX_ERR, curr_line, "Parametro de MACRO inválido", __input_name));
+            } else{
+                // Remove &
+                current_parameter.erase(current_parameter.begin());
+            }
+            // Create hash table with Parameter and current generic ID
+            parameters[current_parameter] = '1' + i;
+        }
+        
+    }
+    // Insert macro name into MNT table, with current amount of paramenters and respective MDT id
+    __MNT[tokens[0].first] = std::make_pair(parameters.size(), ++__macro_id);
+    std::string line;
+    // Read all next line until ENDMACRO
+    getline(__file_pointer,line);
+    tokens = _filter_line(line, curr_line);
+    curr_line++;
+    while(tokens[0].second != ENDMACRO){
+
+        bool has_endmacro = false;
+
+        // Checks if have &parameter, in order to change to the generic in MDT
+        for(Token &pair : tokens){
+            // ENMACRO not alone in a line
+            if(pair.first == "ENDMACRO") has_endmacro = true;
+            // If is not &, then don't need to change
+            if(pair.first[0] != '&') continue;
+            // New generic token with correct parameters                    
+            std::string new_token, current_parameter;
+            // Split tokens by ','
+            std::vector<std::string> splited_token = Utils::split(pair.first, ',');
+            // Iterate through splited token
+            for(int i = 0; i < (int) splited_token.size(); i++){
+                // Add ',' if have more than 1 parameter
+                if(i) new_token += ",";
+                // Get splited parameter
+                current_parameter = splited_token[i];
+                // Erase &
+                current_parameter.erase(current_parameter.begin());
+                // Add # + Current ID
+                if(parameters.count(current_parameter)){
+                    new_token = new_token + "#" + parameters[current_parameter];
+                } else{
+                    __errs.push_back(Error(SYN_ERR, curr_line, "Parametro não declarado &" + current_parameter, __input_name));
+                }
+            }
+            // New token with generic parameter
+            pair.first = new_token;
+        }
+
+        // Read all next line until ENDMACRO
+        if(has_endmacro){
+            __errs.push_back(Error(SEM_ERR, curr_line, "ENDMACRO na posição inválida", __input_name));
+            break;
+        }
+
+        // Append tokens from that macro in MDT table
+        __MDT[__macro_id].insert(__MDT[__macro_id].end(), tokens.begin(), tokens.end());
+
+        getline(__file_pointer,line);
+        tokens = _filter_line(line, curr_line);
+        curr_line++;
+    }
+    // Remove last duplicated \n token
+    __MDT[__macro_id].pop_back();
+
 }
 
 void Pre_processor::_expand_ifs(std::vector<Token> curr_tokens, int& curr_line){

@@ -80,11 +80,26 @@ TEST_CASE("Test labels", "[first_pass]"){
     for(Error err : errs){
        std::cout << err << std::endl;
     }
-    REQUIRE((errs.size()) == 9);
+    REQUIRE((errs.size()) == 14);
     for(Error err : errs){
         REQUIRE(err.get_code() == SEM_ERR);
     }
 }
 
-// TODO: Testar vetor de Tokens
-// Que será passado para a segunda passagem.
+TEST_CASE("Test symbol table for next pass"){
+    Pre_processor proc("assets/final_tests/test_Processor_1.txt");
+    proc.run();
+    std::unordered_map<std::string, Symbol> symbols = proc.get_symbol_table();
+    std::vector<Error> errs = proc.get_errors();
+    for(Error err : errs){
+        std::cout << err << std::endl;
+    }
+    REQUIRE(symbols.size() == 5);
+    REQUIRE(symbols["WHILE"].get_value() == 4);
+    REQUIRE(symbols["FIM"].get_value() == 28);
+    REQUIRE(symbols["N"].get_value() == 29);
+    REQUIRE(symbols["AUX"].get_value() == 30);
+    REQUIRE(symbols["DOIS"].get_value() == 31);
+
+}
+
