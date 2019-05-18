@@ -133,7 +133,7 @@ int digit_value(std::string str, std::string & err){
 }
 
 
-std::string delSpaces(std::string &str){
+std::string delete_spaces(std::string &str){
    str.erase(std::remove(str.begin(), str.end(), ' '), str.end());
    return str;
 }

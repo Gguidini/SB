@@ -1,0 +1,45 @@
+ERROR1: MACRO &A, &B, C  ; Macro sem no parametro &
+COPY &A, &B
+ADD &C
+ENDMACRO
+
+ERROR2: MACRO &A, &B  ; Macro usa um parametro não declarado
+COPY &A, &B
+ADD &C
+ENDMACRO
+
+MACRO &A, &B  ; Macro sem label
+COPY &A, &B
+ENDMACRO
+
+ERROR4: MACRO &A, &B, &C, &D  ; Macro com mais de 3 parametros
+COPY &A, &B
+ADD &C
+ENDMACRO
+
+ERROR5: &A, &B MACRO    ; Macro fora de ordem
+ADD A
+STORE B
+ENDMACRO
+
+ERROR6: MACRO &1batata  ; Parametro com token inválido
+ADD &1batata
+ENDMACRO
+
+OK: MACRO       ; ENDMACRO na mesma linha que o resto
+ADD N           ; Erro ou não?
+STORE N ENDMACRO
+
+CERTO: MACRO ; Macro correta para ser chamada dentro da proxima macro
+ADD N
+ADD Y
+ENDMACRO
+
+MACROCHAMAMACRO: MACRO ; Macro que chama outra macro
+ADD X
+CERTO
+ADD Z
+CERTO
+ENDMACRO
+
+SECTION TEXT    ; Evita erro seção texto faltante

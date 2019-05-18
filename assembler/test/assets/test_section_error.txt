@@ -1,4 +1,0 @@
-section data
-SECTION INVALID
-section data 
-Section

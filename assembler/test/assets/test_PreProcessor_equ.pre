@@ -1,4 +1,0 @@
-N: SPACE 1
-ADD N + 1
-SUB N + 10
-K: CONST 10

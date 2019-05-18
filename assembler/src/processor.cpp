@@ -84,7 +84,7 @@ Processor::Processor(std::vector<Token> tokens, std::unordered_map<std::string, 
 
 std::string Processor::generate_output(){
     if(!__done){
-        throw("Tentando gerar output sem pre-processar o arquivo\n");
+        throw("Tentando gerar output sem processar o arquivo\n");
     }
     
     std::ofstream fd(__output_name);
@@ -127,29 +127,55 @@ std::vector<int> Processor::run(){
     
     for(int i = 0; i < (int)__tokens.size(); i++){
         Token &pair = __tokens[i];
+
+        // End line, just need to increment line count variable
         if(pair.first == "\n"){
             curr_line++;
+
+          // If token are in Instruction table  
         } else if(instructions.count(pair.first)){
+
+            // Object of Instruction class
             Instruction current_instruction = instructions[pair.first];
+
+            // Push that opcode
             __object_code.push_back(current_instruction.opcode());
 
+            // Check if that instruction have 1 or 2 parameters
             if(current_instruction.operands() == 1){
+
+                // Get parameter
                 i++;
                 pair = __tokens[i];
+
+                // Offset to sum with array (if needed)
                 int offset = 0;
+
+                // If that parameter is in symbol tabel
                 if(__symbol_table.count(pair.first)){
 
+                    // Get curr symble object
                     Symbol curr_symbol = __symbol_table[pair.first];
                     std::string curr_symbol_name = pair.first;
 
+                    // Checks if is an array
                     if(curr_symbol.is_vector()){
+
+                        // If if a JMP, cannot use ARRAY, only label
                         if((current_instruction.mnemonic() == "JMP" or current_instruction.mnemonic() == "JMPN" or current_instruction.mnemonic() == "JMPP" or current_instruction.mnemonic() == "JMPZ") and !curr_symbol.can_jump()){
                             __errs.push_back(Error(SEM_ERR, curr_line, "Não se pode pular para uma label fora da SECTION TEXT", __input_name));
+
+                        // Checks if have offset
                         } else if(__tokens[i+1].first == "+"){
+                            
+                            // Get offset
                             i += 2;
                             pair = __tokens[i];
                             std::string err;
+
                             offset = Utils::digit_value(pair.first, err);
+
+                            // If have error, check if this not number is a instruction, label or invalid number
                             if(err != ""){
                                 if(instructions.count(pair.first)){
                                     __errs.push_back(Error(SEM_ERR, curr_line, "OFFSET não pode ser uma instrução" , __input_name));    
@@ -159,18 +185,36 @@ std::vector<int> Processor::run(){
                                     __errs.push_back(Error(LEX_ERR, curr_line, err , __input_name));
                                 }
                             }
+
+                            // Seg fault test
                             if(offset > curr_symbol.get_vector_size()){
                                 __errs.push_back(Error(SEM_ERR, curr_line, "Seg fault, OFFSET " + pair.first + " superior ao tamanho do array", __input_name));
                                 offset = 0;
                             }
                         }
-
+                    
+                    // Not array
                     } else{
+
+                        // Have + sign of array
                         if(__tokens[i+1].first == "+"){
+<<<<<<< HEAD
                             
                             get_endline(i);
                             
                             __errs.push_back(Error(SEM_ERR, curr_line, "Parâmetro " + pair.first + " NÃO é um array", __input_name));
+=======
+                            __errs.push_back(Error(SEM_ERR, curr_line, "Parâmetro " + pair.first + " NÃO é um array", __input_name));
+                            
+                            // Ignore that entire line
+                            while(pair.first != "\n"){
+                                i++;
+                                pair = __tokens[i];
+                            }
+                            i--;
+
+                        // CHECK DIV 0, OR STORE CONST, OR JMP TO INVALID LABEL OR INSTRUCTION TO JUMPABLE LABEL
+>>>>>>> 3ddef47f813314bf73b9f53d5b6aa8b53d053caa
                         } else{
                             if(current_instruction.mnemonic() == "DIV" and curr_symbol.is_const_zero()){
                                 __errs.push_back(Error(SEM_ERR, curr_line, "Divisão por zero", __input_name));
@@ -187,38 +231,58 @@ std::vector<int> Processor::run(){
                         }
                     }
 
+                    // Push label value + offset (array case)
                     __object_code.push_back(__symbol_table[curr_symbol_name].get_value() + offset);
+
+                    // Check if have more than 1 parameter 
                     if(__tokens[i+1].first != "\n"){
                         __errs.push_back(Error(SYN_ERR, curr_line, "Instrução " + current_instruction.mnemonic() + " com mais de 1 parâmetro", __input_name));
+                        
+                        // Ignore the entire parameters of that line
                         while(pair.first != "\n"){
                             i++;
                             pair = __tokens[i];
                         }
                         i--;
-                        pair = __tokens[i];
                     }
                 }
+                // Invalid parameter, check if is an insctrction or not defined label
                 else{
                     if(instructions.count(pair.first)){
                         __errs.push_back(Error(SEM_ERR, curr_line, "Parâmetro não pode ser uma instrução" , __input_name));    
                     } else{
                         __errs.push_back(Error(SEM_ERR, curr_line, "Parâmetro " + pair.first + " não definido", __input_name));
                     }
+                    // Push 0 to continue the tests
                     __object_code.push_back(0);
                 }
+
+                // Ignore the rest of the line (case array not valid, then ignore all + OFFSET and that stuff)
                 while(pair.first != "\n"){
                     i++;
                     pair = __tokens[i];
                 }
                 i--;
+            
+            // Instruction with 2 parameters
             } else if(current_instruction.operands() == 2){
+
+                // Get first parameter
                 i++;
                 pair = __tokens[i];
+                std::vector<std::string> split = Utils::split(pair.first, ',');
+                std::string old = pair.first;
+                pair.first = split[0];
+                // Array offset
                 int offset = 0;
+                // Checks if that parameter is in symbol table
                 if(__symbol_table.count(pair.first)){
+
+                    // Get current symbol object
                     Symbol curr_symbol = __symbol_table[pair.first];
                     std::string curr_symbol_name = pair.first;
 
+                    // Checks if is an array
                     if(curr_symbol.is_vector()){
                         if(__tokens[i+1].first == "+"){
                             i += 2;
@@ -253,6 +317,7 @@ std::vector<int> Processor::run(){
                             if(split.size() > 1) pair.first = split[1];
                         }
                         else{
+                            pair.first = old;
                             std::vector<std::string> split = Utils::split(pair.first, ',');
                             pair.first.clear();
                             if(split.size() > 1) pair.first = split[1];
@@ -340,21 +405,35 @@ std::vector<int> Processor::run(){
                     i--;
                 }
             }
-            
+        
+        // If is a SPACE token
         } else if(pair.first == "SPACE"){
+
+            // Check if have parameter (array size)
             if(__tokens[i+1].first != "\n"){
+                // Get next token
                 i++;
                 pair = __tokens[i];
+
+                // If have more token, then have more than necessary 
                 if(__tokens[i+1].first != "\n"){
                     __errs.push_back(Error(SYN_ERR, curr_line, "Instrução SPACE com mais de 1 parâmetro", __input_name));
+
+                    // Ignore all the parameters in that line
                     while(pair.first != "\n"){
                         i++;
                         pair = __tokens[i];
                     }
                     i--;
+
+                // Have only one parameter
                 } else{
+                    
                     std::string err;
+                    // Transform that string into value
                     int value = Utils::digit_value(pair.first, err);
+
+                    // If have error, check if this not number is a instruction, label or invalid number
                     if(err != ""){
                         if(instructions.count(pair.first)){
                             __errs.push_back(Error(SEM_ERR, curr_line, "SPACE não pode ser uma instrução" , __input_name));    
@@ -363,10 +442,12 @@ std::vector<int> Processor::run(){
                         } else{
                             __errs.push_back(Error(LEX_ERR, curr_line, "SPACE " + pair.first + " inválido", __input_name));
                         }
-                    }
-                    else {
+                    // Valid number
+                    } else {
+                        // Space can't have <= 0 space
                         if(value <= 0){
                             __errs.push_back(Error(SEM_ERR, curr_line, "Não se pode alocar valores <= 0 no SPACE", __input_name));
+                        // Store quantity of space for that array
                         } else {
                             for(int qnt = 0; qnt < value; qnt++){
                                 __object_code.push_back(0);
@@ -374,14 +455,19 @@ std::vector<int> Processor::run(){
                         }
                     }
                 }
+            // Not array variable, need only 1 space
             } else{
                 __object_code.push_back(0);
             }
+        // Const Directive
         } else if(pair.first == "CONST"){
+            // Get next parameter
             i++;
             pair = __tokens[i];
             std::string err;
             int value = Utils::digit_value(pair.first, err);
+
+            // If have error, check if this not number is a instruction, label or invalid number
             if(err != ""){
                 if(instructions.count(pair.first)){
                     __errs.push_back(Error(SEM_ERR, curr_line, "CONST não pode ser uma instrução" , __input_name));    
@@ -391,21 +477,30 @@ std::vector<int> Processor::run(){
                     __errs.push_back(Error(LEX_ERR, curr_line, "CONST " + pair.first + " inválido", __input_name));
                 }
             }
+            // Store that value
             else {
                 __object_code.push_back(value);
             }
+            // If not is the end of the line
             if(__tokens[i+1].first != "\n"){
                 __errs.push_back(Error(SYN_ERR, curr_line, "Instrução CONST com mais de 1 parâmetro", __input_name));
+
+                // Ignore all the parameters in that line
                 while(pair.first != "\n"){
                     i++;
                     pair = __tokens[i];
                 }
                 i--;
             }
+
+        // IGNORE THAT LINE
         } else if(pair.first == "SECTION"){
             i++;
+        // If is not instruction, space, const and label, then is an invalid instruction
         } else if(pair.second != LABEL){
             __errs.push_back(Error(SEM_ERR, curr_line, "Instrução " + pair.first + " inválida", __input_name));
+
+            // Ignore that line
             while(pair.first != "\n"){
                 i++;
                 pair = __tokens[i];

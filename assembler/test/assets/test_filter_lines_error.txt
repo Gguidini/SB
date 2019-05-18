@@ -1,9 +1,0 @@
-SECTION TEXT    ; Evita gerar o erro de seção texto faltante
-
-LABEL_OK:         ADD N
-Label2_OK:        ADD N
-1LabelErrada:     ADD N
-Label#Invalida: ADD N
-Label&Invalida: ADD N
-Label,Invalida: ADD N
-LabelGigantescaDesnecessariamenteMeuDeusDoCeuPorque: ADD N
