@@ -580,18 +580,18 @@ void Pre_processor::_expand_macros(std::vector<Token> tokens, int& curr_line){
     // Insert macro name into MNT table, with current amount of paramenters and respective MDT id
     __MNT[tokens[0].first] = std::make_pair(parameters.size(), ++__macro_id);
     std::string line;
-    // Read all next line until ENDMACRO
-    getline(__file_pointer,line);
-    tokens = _filter_line(line, curr_line);
-    curr_line++;
-    while(tokens[0].second != ENDMACRO){
-
-        bool has_endmacro = false;
+    
+    
+    bool has_endmacro = false;
+    // Read all next line until ENDMACRO (break on ENDMACRO)
+    while(getline(__file_pointer,line)){
+        tokens = _filter_line(line, curr_line);
+        curr_line++;
 
         // Checks if have &parameter, in order to change to the generic in MDT
         for(Token &pair : tokens){
             // ENMACRO not alone in a line
-            if(pair.first == "ENDMACRO") has_endmacro = true;
+            if(pair.second == ENDMACRO) has_endmacro = true;
             // If is not &, then don't need to change
             if(pair.first[0] != '&') continue;
             // New generic token with correct parameters                    
@@ -619,16 +619,17 @@ void Pre_processor::_expand_macros(std::vector<Token> tokens, int& curr_line){
 
         // Read all next line until ENDMACRO
         if(has_endmacro){
-            __errs.push_back(Error(SEM_ERR, curr_line, "ENDMACRO na posição inválida", __input_name));
+            if(tokens[0].second != ENDMACRO){
+                __errs.push_back(Error(SEM_ERR, curr_line, "ENDMACRO na posição inválida", __input_name));
+            }
             break;
         }
 
         // Append tokens from that macro in MDT table
         __MDT[__macro_id].insert(__MDT[__macro_id].end(), tokens.begin(), tokens.end());
-
-        getline(__file_pointer,line);
-        tokens = _filter_line(line, curr_line);
-        curr_line++;
+    }
+    if(!has_endmacro){
+        __errs.push_back(Error(SEM_ERR, curr_line, "ENDMACRO faltando.", __input_name));
     }
     // Remove last duplicated \n token
     __MDT[__macro_id].pop_back();

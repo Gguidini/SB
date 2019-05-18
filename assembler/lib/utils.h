@@ -68,7 +68,7 @@ int stox(std::string str, std::string &err){
        if(! value.count(toupper(digit))){
            std::reverse(str.begin(), str.end());
            err = "Numero hexadecimal inválido (" + str + ")";
-           return -1;
+           return 0;
        }
       sum += (base * value[toupper(digit)]);
       base *= 16;
@@ -87,40 +87,49 @@ int digit_value(std::string str, std::string & err){
         str = str.substr(1,str.size()-1);
     }
     if(is_digit(str)){
-        return stoi(str);
+        return stoi(str) * sinal;
     }
     if(str.substr(0, 2) == "0d"){
         if(str.size() == 2){
             err = "Número decimal inválido (" + str + ")";
-            return -1;
+            return 0;
+        }
+        str = str.substr(2,str.size() - 2);
+        if(!is_digit(str)){
+            err = "Número decimal inválido (0d" + str + ")";
+            return 0;
         }
         return stoi(str.substr(2,str.size() - 2)) * sinal;
     }
     if(str[str.size()-1] == 'd'){
         if(str.size() == 1){
             err = "Número decimal inválido (" + str + ")";
-            return -1;
+            return 0;
         }
         str.pop_back();
+        if(!is_digit(str)){
+            err = "Número decimal inválido (" + str + "d)";
+            return 0;
+        }
         return stoi(str) * sinal;
     }
     if(str.substr(0, 2) == "0x"){
         if(str.size() == 2){
             err = "Número hexadecimal inválido (" + str + ")";
-            return -1;
+            return 0;
         }
         return stox(str.substr(2,str.size() - 2), err) * sinal;
     }
     if(str[str.size()-1] == 'h'){
         if(str.size() == 1){
             err = "Número hexadecimal inválido (" + str + ")";
-            return -1;
+            return 0;
         }
         str.pop_back();
         return stox(str, err) * sinal;
     }
     err = "Número inválido (" + str + ")";
-    return -1;
+    return 0;
 }
 
 }

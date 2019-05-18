@@ -92,47 +92,90 @@ std::string Processor::generate_output(){
 }
 
 std::vector<int> Processor::run(){
-    std::cout << "tabela de symbles = " << std::endl;
-    for ( auto it = __symbol_table.begin(); it != __symbol_table.end(); ++it )
-        std::cout << it->first << ":" << it->second.can_jump() << " " << it->second.get_value() << std::endl;
-
     std::unordered_map<std::string, Instruction> instructions = table_of_instructions();
-
-    std::cout << "tabela de opcodes = " << std::endl;
-    for ( auto it = instructions.begin(); it != instructions.end(); ++it )
-        std::cout << it->first << ":" << it->second.mnemonic() <<  std::endl;
-
     int curr_line = 1;
+    
     for(int i = 0; i < (int)__tokens.size(); i++){
         Token &pair = __tokens[i];
-        std::cout << "TOKEN = " << pair.first << std::endl;
         if(pair.first == "\n"){
             curr_line++;
         } else if(instructions.count(pair.first)){
             Instruction current_instruction = instructions[pair.first];
-            std::cout << "add o opcode " << current_instruction.opcode() << " que tem nome = " << current_instruction.mnemonic() << std::endl;
             __object_code.push_back(current_instruction.opcode());
 
             if(current_instruction.operands() == 1){
                 i++;
                 pair = __tokens[i];
-                std::cout << "TOKEN2 [1]= " << pair.first << std::endl;
+                int offset = 0;
                 if(__symbol_table.count(pair.first)){
 
                     Symbol curr_symbol = __symbol_table[pair.first];
+                    std::string curr_symbol_name = pair.first;
 
                     if(curr_symbol.is_vector()){
-                        int offset;
-                        __errs.push_back(Error(SEM_ERR, curr_line, "Parâmetro " + pair.first + " é um array e não possui OFFSET", __input_name));
-                    } else if(!curr_symbol.is_vector() && __tokens[i+1].first == "+"){
-                        __errs.push_back(Error(SEM_ERR, curr_line, "Parâmetro " + pair.first + " NÃO é um array e está com OFFSET", __input_name));
+                        if((current_instruction.mnemonic() == "JMP" or current_instruction.mnemonic() == "JMPN" or current_instruction.mnemonic() == "JMPP" or current_instruction.mnemonic() == "JMPZ") and !curr_symbol.can_jump()){
+                            __errs.push_back(Error(SEM_ERR, curr_line, "Não se pode pular para uma label fora da SECTION TEXT", __input_name));
+                        } else if(__tokens[i+1].first == "+"){
+                            i += 2;
+                            pair = __tokens[i];
+                            std::string err;
+                            offset = Utils::digit_value(pair.first, err);
+                            if(err != ""){
+                                if(instructions.count(pair.first)){
+                                    __errs.push_back(Error(SEM_ERR, curr_line, "OFFSET não pode ser uma instrução" , __input_name));    
+                                } else if (__symbol_table.count(pair.first)){
+                                    __errs.push_back(Error(SEM_ERR, curr_line, "OFFSET não pode ser uma LABEL" , __input_name));    
+                                } else{
+                                    __errs.push_back(Error(LEX_ERR, curr_line, err , __input_name));
+                                }
+                            }
+                            if(offset > curr_symbol.get_vector_size()){
+                                __errs.push_back(Error(SEM_ERR, curr_line, "Seg fault, OFFSET " + pair.first + " superior ao tamanho do array", __input_name));
+                                offset = 0;
+                            }
+                        }
+
+                    } else{
+                        if(__tokens[i+1].first == "+"){
+                            while(pair.first != "\n"){
+                                i++;
+                                pair = __tokens[i];
+                            }
+                            i--;
+                            __errs.push_back(Error(SEM_ERR, curr_line, "Parâmetro " + pair.first + " NÃO é um array", __input_name));
+                        } else{
+                            if(current_instruction.mnemonic() == "DIV" and curr_symbol.is_const_zero()){
+                                __errs.push_back(Error(SEM_ERR, curr_line, "Divisão por zero", __input_name));
+                            } 
+                            if(current_instruction.mnemonic() == "STORE" and curr_symbol.is_const()){
+                                __errs.push_back(Error(SEM_ERR, curr_line, "Não se pode alterar o valor de um CONST", __input_name));
+                            }
+                            if((current_instruction.mnemonic() == "JMP" or current_instruction.mnemonic() == "JMPN" or current_instruction.mnemonic() == "JMPP" or current_instruction.mnemonic() == "JMPZ") and !curr_symbol.can_jump()){
+                                __errs.push_back(Error(SEM_ERR, curr_line, "Não se pode pular para uma label fora da SECTION TEXT", __input_name));
+                            }
+                            if((current_instruction.mnemonic() != "JMP" and current_instruction.mnemonic() != "JMPN" and current_instruction.mnemonic() != "JMPP" and current_instruction.mnemonic() != "JMPZ") and curr_symbol.can_jump()){
+                                __errs.push_back(Error(SEM_ERR, curr_line, "Instrução " + current_instruction.mnemonic() + " está utilizando uma label dentro da SECTION TEXT", __input_name));
+                            }
+                        }
                     }
 
-                    std::cout << "add o valor " << __symbol_table[pair.first].get_value() << " que tem nome = " << pair.first << std::endl;
-                    __object_code.push_back(__symbol_table[pair.first].get_value());
+                    __object_code.push_back(__symbol_table[curr_symbol_name].get_value() + offset);
+                    if(__tokens[i+1].first != "\n"){
+                        __errs.push_back(Error(SYN_ERR, curr_line, "Instrução " + current_instruction.mnemonic() + " com mais de 1 parâmetro", __input_name));
+                        while(pair.first != "\n"){
+                            i++;
+                            pair = __tokens[i];
+                        }
+                        i--;
+                        pair = __tokens[i];
+                    }
                 }
                 else{
-                    __errs.push_back(Error(SEM_ERR, curr_line, "Parâmetro " + pair.first + " inválido", __input_name));
+                    if(instructions.count(pair.first)){
+                        __errs.push_back(Error(SEM_ERR, curr_line, "Parâmetro não pode ser uma instrução" , __input_name));    
+                    } else{
+                        __errs.push_back(Error(SEM_ERR, curr_line, "Parâmetro " + pair.first + " não definido", __input_name));
+                    }
                     __object_code.push_back(0);
                 }
                 while(pair.first != "\n"){
@@ -140,23 +183,208 @@ std::vector<int> Processor::run(){
                     pair = __tokens[i];
                 }
                 i--;
-            }
+            } else if(current_instruction.operands() == 2){
+                i++;
+                pair = __tokens[i];
+                int offset = 0;
+                if(__symbol_table.count(pair.first)){
+                    Symbol curr_symbol = __symbol_table[pair.first];
+                    std::string curr_symbol_name = pair.first;
 
-            for(int j = 0; j < current_instruction.operands(); j++){
+                    if(curr_symbol.is_vector()){
+                        if(__tokens[i+1].first == "+"){
+                            i += 2;
+                            pair = __tokens[i];
+                            std::vector<std::string> split = Utils::split(pair.first, ',');
+                            pair.first = split[0];
+                            std::string err;
+                            offset = Utils::digit_value(pair.first, err);
+                            if(err != ""){
+                                if(instructions.count(pair.first)){
+                                    __errs.push_back(Error(SEM_ERR, curr_line, "OFFSET não pode ser uma instrução" , __input_name));    
+                                } else if (__symbol_table.count(pair.first)){
+                                    __errs.push_back(Error(SEM_ERR, curr_line, "OFFSET não pode ser uma LABEL" , __input_name));    
+                                } else{
+                                    __errs.push_back(Error(LEX_ERR, curr_line, err , __input_name));
+                                }
+                            }
+                            if(offset > curr_symbol.get_vector_size()){
+                                __errs.push_back(Error(SEM_ERR, curr_line, "Seg fault, OFFSET " + pair.first + " superior ao tamanho do array", __input_name));
+                                offset = 0;
+                            }
+                            pair.first.clear();
+                            if(split.size() > 1) pair.first = split[1];
+                        }
+                    } else{
+                        if(__tokens[i+1].first == "+"){
+                            __errs.push_back(Error(SEM_ERR, curr_line, "Parâmetro " + pair.first + " NÃO é um array", __input_name));
+                            i += 2;
+                            pair = __tokens[i];
+                            std::vector<std::string> split = Utils::split(pair.first, ',');
+                            pair.first.clear();
+                            if(split.size() > 1) pair.first = split[1];
+                        }
+                        else{
+                            std::vector<std::string> split = Utils::split(pair.first, ',');
+                            pair.first.clear();
+                            if(split.size() > 1) pair.first = split[1];
+                        }
+                    }
+
+                    __object_code.push_back(__symbol_table[curr_symbol_name].get_value() + offset);
+
+
+                } else{
+                    __errs.push_back(Error(SEM_ERR, curr_line, "Parâmetro " + pair.first + " não definido", __input_name));
+                    __object_code.push_back(0);
+                    if(__tokens[i+1].first == "+"){
+                        i += 2;
+                        pair = __tokens[i];
+                        std::vector<std::string> split = Utils::split(pair.first, ',');
+                        pair.first.clear();
+                        if(split.size() > 1) pair.first = split[1];
+                    }
+                    else{
+                        std::vector<std::string> split = Utils::split(pair.first, ',');
+                        pair.first.clear();
+                        if(split.size() > 1) pair.first = split[1];
+                    }
+
+                }
+
+                if(pair.first == ""){
+                    i++;
+                    pair = __tokens[i];
+                }
+                offset = 0;
+
+                if(__symbol_table.count(pair.first)){
+
+                    Symbol curr_symbol = __symbol_table[pair.first];
+                    std::string curr_symbol_name = pair.first;
+
+                    if(curr_symbol.is_vector()){
+                        if(__tokens[i+1].first == "+"){
+                            i += 2;
+                            pair = __tokens[i];
+                            std::string err;
+                            offset = Utils::digit_value(pair.first, err);
+                            if(err != ""){
+                                if(instructions.count(pair.first)){
+                                    __errs.push_back(Error(SEM_ERR, curr_line, "OFFSET não pode ser uma instrução" , __input_name));    
+                                } else if (__symbol_table.count(pair.first)){
+                                    __errs.push_back(Error(SEM_ERR, curr_line, "OFFSET não pode ser uma LABEL" , __input_name));    
+                                } else{
+                                    __errs.push_back(Error(LEX_ERR, curr_line, err , __input_name));
+                                }
+                            }
+                            if(offset > curr_symbol.get_vector_size()){
+                                __errs.push_back(Error(SEM_ERR, curr_line, "Seg fault, OFFSET " + pair.first + " superior ao tamanho do array", __input_name));
+                                offset = 0;
+                            }
+                        }
+
+                    } else{
+                        if(__tokens[i+1].first == "+"){
+                            while(pair.first != "\n"){
+                                i++;
+                                pair = __tokens[i];
+                            }
+                            i--;
+                            __errs.push_back(Error(SEM_ERR, curr_line, "Parâmetro " + pair.first + " NÃO é um array", __input_name));
+                        }
+                    }
+                    __object_code.push_back(__symbol_table[curr_symbol_name].get_value() + offset);
+
+                    if(__tokens[i+1].first != "\n"){
+                        __errs.push_back(Error(SYN_ERR, curr_line, "Instrução " + current_instruction.mnemonic() + " com mais de 1 parâmetro", __input_name));
+                        while(pair.first != "\n"){
+                            i++;
+                            pair = __tokens[i];
+                        }
+                        i--;
+                    }
+                } else{
+                    __errs.push_back(Error(SEM_ERR, curr_line, "Parâmetro " + pair.first + " não definido", __input_name));
+                    __object_code.push_back(0);
+                    while(pair.first != "\n"){
+                        i++;
+                        pair = __tokens[i];
+                    }
+                    i--;
+                }
             }
+            
         } else if(pair.first == "SPACE"){
-            __object_code.push_back(0);
+            if(__tokens[i+1].first != "\n"){
+                i++;
+                pair = __tokens[i];
+                if(__tokens[i+1].first != "\n"){
+                    __errs.push_back(Error(SYN_ERR, curr_line, "Instrução SPACE com mais de 1 parâmetro", __input_name));
+                    while(pair.first != "\n"){
+                        i++;
+                        pair = __tokens[i];
+                    }
+                    i--;
+                } else{
+                    std::string err;
+                    int value = Utils::digit_value(pair.first, err);
+                    if(err != ""){
+                        if(instructions.count(pair.first)){
+                            __errs.push_back(Error(SEM_ERR, curr_line, "SPACE não pode ser uma instrução" , __input_name));    
+                        } else if (__symbol_table.count(pair.first)){
+                            __errs.push_back(Error(SEM_ERR, curr_line, "SPACE não pode ser uma LABEL" , __input_name));    
+                        } else{
+                            __errs.push_back(Error(LEX_ERR, curr_line, "SPACE " + pair.first + " inválido", __input_name));
+                        }
+                    }
+                    else {
+                        if(value <= 0){
+                            __errs.push_back(Error(SEM_ERR, curr_line, "Não se pode alocar valores <= 0 no SPACE", __input_name));
+                        } else {
+                            for(int qnt = 0; qnt < value; qnt++){
+                                __object_code.push_back(0);
+                            }
+                        }
+                    }
+                }
+            } else{
+                __object_code.push_back(0);
+            }
         } else if(pair.first == "CONST"){
             i++;
             pair = __tokens[i];
             std::string err;
             int value = Utils::digit_value(pair.first, err);
-            if(err == "")
+            if(err != ""){
+                if(instructions.count(pair.first)){
+                    __errs.push_back(Error(SEM_ERR, curr_line, "CONST não pode ser uma instrução" , __input_name));    
+                } else if (__symbol_table.count(pair.first)){
+                    __errs.push_back(Error(SEM_ERR, curr_line, "CONST não pode ser uma LABEL" , __input_name));    
+                } else{
+                    __errs.push_back(Error(LEX_ERR, curr_line, "CONST " + pair.first + " inválido", __input_name));
+                }
+            }
+            else {
                 __object_code.push_back(value);
+            }
+            if(__tokens[i+1].first != "\n"){
+                __errs.push_back(Error(SYN_ERR, curr_line, "Instrução CONST com mais de 1 parâmetro", __input_name));
+                while(pair.first != "\n"){
+                    i++;
+                    pair = __tokens[i];
+                }
+                i--;
+            }
         } else if(pair.first == "SECTION"){
             i++;
         } else if(pair.second != LABEL){
-            __errs.push_back(Error(SEM_ERR, curr_line, "Comando " + pair.first + " inválido", __input_name));
+            __errs.push_back(Error(SEM_ERR, curr_line, "Instrução " + pair.first + " inválida", __input_name));
+            while(pair.first != "\n"){
+                i++;
+                pair = __tokens[i];
+            }
+            i--;
         }
     }
 

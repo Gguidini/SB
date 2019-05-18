@@ -38,34 +38,30 @@ TEST_CASE("Identifies IF errors", "[error]"){
 TEST_CASE("Identifies MACRO errors", "[error]"){
     Pre_processor proc("assets/test_PreProcessorErrors_macro.txt");
     proc.run();
-    std::vector<Error> err = proc.get_errors();
-    REQUIRE((err.size()) == 7);
+    std::vector<Error> errs = proc.get_errors();
+    for(Error err : errs){
+        std::cout << err << std::endl;
+    }
+    REQUIRE((errs.size()) == 7);
 
-    REQUIRE(err[0].get_code() == LEX_ERR);
-    REQUIRE(err[0].get_line() == 1);
-    std::cout << err[0] << std::endl;
+    REQUIRE(errs[0].get_code() == LEX_ERR);
+    REQUIRE(errs[0].get_line() == 1);
 
-    REQUIRE(err[1].get_code() == SYN_ERR);
-    REQUIRE(err[1].get_line() == 8);
-    std::cout << err[1] << std::endl;
+    REQUIRE(errs[1].get_code() == SYN_ERR);
+    REQUIRE(errs[1].get_line() == 8);
 
-    REQUIRE(err[2].get_code() == SYN_ERR);
-    REQUIRE(err[2].get_line() == 11);
-    std::cout << err[2] << std::endl;
+    REQUIRE(errs[2].get_code() == SYN_ERR);
+    REQUIRE(errs[2].get_line() == 11);
 
-    REQUIRE(err[3].get_code() == SYN_ERR);
-    REQUIRE(err[3].get_line() == 15);
-    std::cout << err[3] << std::endl;
+    REQUIRE(errs[3].get_code() == SYN_ERR);
+    REQUIRE(errs[3].get_line() == 15);
 
-    REQUIRE(err[4].get_code() == SYN_ERR);
-    REQUIRE(err[4].get_line() == 20);
-    std::cout << err[4] << std::endl;
+    REQUIRE(errs[4].get_code() == SYN_ERR);
+    REQUIRE(errs[4].get_line() == 20);
 
-    REQUIRE(err[5].get_code() == LEX_ERR);
-    REQUIRE(err[5].get_line() == 20);
-    std::cout << err[5] << std::endl;
+    REQUIRE(errs[5].get_code() == LEX_ERR);
+    REQUIRE(errs[5].get_line() == 20);
 
-    REQUIRE(err[6].get_code() == SEM_ERR);
-    REQUIRE(err[6].get_line() == 31);
-    std::cout << err[6] << std::endl;
+    REQUIRE(errs[6].get_code() == SEM_ERR);
+    REQUIRE(errs[6].get_line() == 31);
 }
