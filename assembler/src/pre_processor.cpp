@@ -26,6 +26,7 @@
 #define IF 3
 #define ENDMACRO 5
 #define OP 4
+#define DIR 6     // SPACE or CONST
 #define ENDL 11
 
 typedef std::pair<std::string, int> Token;
@@ -53,6 +54,8 @@ bool create_tagged_token(std::string str, Token& tok){
         tok = std::make_pair(str, OP);
     } else if(test == "SECTION") {
         tok = std::make_pair(str, SEC);
+    } else if(test == "SPACE" || test == "CONST") {
+        tok = std::make_pair(str, DIR);
     } else {
         tok = std::make_pair(str, -1);
     }
@@ -87,6 +90,7 @@ class Pre_processor {
     bool __done;                        // If processed the entire file
     std::vector<Error> __errs;          // Vector of Errors
     std::unordered_map<std::string, Symbol> __symbol_table;  // Symbol table
+    std::unordered_map<std::string, Instruction> __instructions; // All intructions
     
     // Macro values
     int __macro_id;
@@ -148,6 +152,7 @@ Pre_processor::Pre_processor(std::string input_name){
     __section_text = false;
     __errs = std::vector<Error>();
     __symbol_table = std::unordered_map<std::string, Symbol>();
+    __instructions = table_of_instructions();
     __macro_id = 0;
     __input_name = input_name;
     // Verifica se extensão é .txt
@@ -248,21 +253,28 @@ std::vector<Token> Pre_processor::_filter_line(std::string &line, int lst_line){
 
 // run processes de original file.
 // Saves processed lines in __buffer. Returns this value.
+// TODO: retornar vetor de Tokens para a segunda passagem.
 std::vector<std::string> Pre_processor::run(){
     
     std::vector<std::string> processed_file;
     std::string line;
     int curr_line = 0;
     int curr_section = -1;
+    int curr_addrs = 0;
     std::vector<Token> tokens = std::vector<Token>();   // Empty token vector
     while(getline(__file_pointer,line)){
         bool has_equ = false;
         bool has_macro = false;
         bool has_if = false;
-        
+        bool has_label = false;
+        int add_addrs = 0;  // Addres to add after processing line
 
         std::vector<Token> tokens_to_add = _filter_line(line, curr_line);
         curr_line++;
+        // Verifica se precisa buscar outro linha do arquivo ou pode processar
+        // Os tokens atuais.
+        // Precisa buscar outra se: linha atual eh vazia
+        // Ou se a linha eh apenas uma label.
         if(tokens_to_add.size() == 1) {
             continue;    // Empty line contains only ENDL token
         } else if(tokens_to_add.size() == 2 && tokens_to_add[0].second == LABEL){
@@ -280,14 +292,34 @@ std::vector<std::string> Pre_processor::run(){
         for(int i = 0; i < (int) tokens.size(); i++){
             Token &pair = tokens[i];
             if(pair.second == EQU){
+                // Marca que haverá processamento de EQU
                 has_equ = true;
             } else if(pair.second == MACRO){
+                // Marca que haverá processamento de MACRO
                 has_macro = true;
             } else if(pair.second == IF){
+                // Marca que haverá processamento de IF
                 has_if = true;
             } else if(pair.second == SEC) {
+                // Esta linha identifica um nova seção.
                 curr_section = _identify_section(tokens, curr_line, i, curr_section);
+            } else if(pair.second == LABEL) {
+                // Marca que possui uma label que talvez deva ir para a tabela de símbolos
+                has_label = true;
+            } else if(pair.second == OP){
+                // Aumenta o contador de endereços
+                add_addrs += __instructions[pair.first].size();
+            } else if(pair.second == DIR){
+                // Aumenta o contador de endereços
+                if(Utils::to_upper(pair.first) == "CONST"){
+                    add_addrs += 1;
+                } else if(Utils::is_digit(tokens[i+1].first)){
+                    add_addrs += stoi(tokens[i+1].first);
+                } else {
+                    add_addrs += 1;
+                }
             } else if(pair.second == -1){
+                // Processa itens sem marcação.
                 // Prováveis LABELS em uso
                 if(__equs.find(pair.first) != __equs.end()){
                     // Expand EQU
@@ -433,23 +465,58 @@ std::vector<std::string> Pre_processor::run(){
             // Don't add tokens to final file becaus macro definition don't appear in main final file
             tokens.clear();
             continue;
-        }
-
-        // EXPAND IF - IF <value> <\n>
-        // IF line not added to preprocessed file
-        else if(has_if){
+        } else if(has_if){
+            // EXPAND IF - IF <value> <\n>
+            // IF line not added to preprocessed file
             _expand_ifs(tokens, curr_line);
             tokens.clear();
             continue;
-        }
-        // EXPAND EQU - LABEL: EQU VALUE <\n>
-        // EQU definition line not added to preprocessed file
-        else if(has_equ){
+        } else if(has_equ){
+            // EXPAND EQU - LABEL: EQU VALUE <\n>
+            // EQU definition line not added to preprocessed file
             _expand_equs(tokens, curr_line);
             tokens.clear();
             continue;
+        } else if(has_label){
+            // Se tem uma label, mas nenhuma das diretivas de pre processador,
+            // Entao esta label vai para a tabela de simbolos.
+            // LABEL: <op ou dir>
+            if(__symbol_table.find(tokens[0].first) != __symbol_table.end()){
+                // TODO: Adicionar erro de label ja definida
+            }
+            bool jumpable = false, constant = false, const_zero = false, vector = false;
+            int vec_size = 0;
+            if(curr_section == SEC_TEXT){
+                // LABEL: <op>
+                if(tokens[1].second == OP){
+                    jumpable = true;
+                } else {
+                    // TODO: Adicionar erros de label inválida na seção TEXT
+                }
+            } else if(curr_section == SEC_DATA){
+                // LABEL: <dir>
+                if(tokens[1].second == DIR){
+                    if(Utils::to_upper(tokens[1].first) == "SPACE" && Utils::is_digit(tokens[2].first)){
+                        vector = true;
+                        vec_size = stoi(tokens[2].first);
+                    } else if(Utils::to_upper(tokens[1].first) == "CONST"){
+                        constant = true;
+                        if(tokens[2].first == "0"){
+                            const_zero = true;
+                        }
+                    }
+                } else{
+                    // TODO: Adicionar erro de label inválida na seção text
+                }
+            }
+                    
+            // Add label to table
+            __symbol_table[tokens[0].first] = Symbol(
+                curr_addrs, jumpable, constant, 
+                const_zero, vector, vec_size);
         }
-        // TODO: Talvez devemos considerar retornar direto o vetor de tokens
+
+
         // Transforma o vetor de tokens em string
         int s = tokens.size();
         std::string processed_line = tokens[0].first;
@@ -470,6 +537,7 @@ std::vector<std::string> Pre_processor::run(){
         }
         processed_file.push_back(processed_line);
         tokens.clear();
+        curr_addrs += add_addrs;
     }
 
     if(__section_text == false){
