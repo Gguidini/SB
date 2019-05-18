@@ -89,11 +89,11 @@ TEST_CASE("Orignal file parsing test", "[pre_processor]") {
         std::string out_name = proc.generate_output();
         lines = read_file(out_name);
         std::vector<std::string> expected{
-            "Non Empty Line 1",
-            "Non Empty Line 2",
-            "Non Empty Line 3",
-            "Non Empty Line 4",
-            "Non Empty Line 5"
+            "NON EMPTY LINE 1",
+            "NON EMPTY LINE 2",
+            "NON EMPTY LINE 3",
+            "NON EMPTY LINE 4",
+            "NON EMPTY LINE 5"
         };
         REQUIRE(lines.size() == expected.size());
         for(int i = 0; i < (int)expected.size(); i++){
@@ -108,11 +108,11 @@ TEST_CASE("Orignal file parsing test", "[pre_processor]") {
         std::string out_name = proc.generate_output();
         lines = read_file(out_name);
         std::vector<std::string> expected{
-            "Non Empty Line 1",
-            "Non Empty Line 2",
-            "Non Empty Line 3",
-            "Non Empty Line 4",
-            "Non Empty Line 5"
+            "NON EMPTY LINE 1",
+            "NON EMPTY LINE 2",
+            "NON EMPTY LINE 3",
+            "NON EMPTY LINE 4",
+            "NON EMPTY LINE 5"
         };
         REQUIRE(lines.size() == expected.size());
         for(int i = 0; i < (int)expected.size(); i++){
@@ -196,10 +196,10 @@ TEST_CASE("Test IF processing", "[directives]") {
     std::string out_name = proc.generate_output();
     lines = read_file(out_name);
     std::vector<std::string> expected{
-        "This line is ok",
-        "This line has to be in the program",
-        "This line has to be in the program",
-        "This line is ok"
+        "THIS LINE IS OK",
+        "THIS LINE HAS TO BE IN THE PROGRAM",
+        "THIS LINE HAS TO BE IN THE PROGRAM",
+        "THIS LINE IS OK"
     };
     REQUIRE(lines.size() == expected.size());
     for(int i = 0; i < (int)expected.size(); i++){

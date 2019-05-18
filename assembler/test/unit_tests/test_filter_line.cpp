@@ -47,9 +47,9 @@ TEST_CASE("Filter lines correctly", "[pre_processor]"){
     getline(test_file, line);
     token = proc._filter_line(line);
     REQUIRE(token.size() == 4);
-    REQUIRE(token[0].first == "coisas");
-    REQUIRE(token[1].first == "sem");
-    REQUIRE(token[2].first == "sentido");
+    REQUIRE(token[0].first == "COISAS");
+    REQUIRE(token[1].first == "SEM");
+    REQUIRE(token[2].first == "SENTIDO");
     // 6th line - Label + EQU
     getline(test_file, line);
     token = proc._filter_line(line);

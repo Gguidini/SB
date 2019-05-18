@@ -51,21 +51,21 @@ bool create_tagged_token(std::string str, Token& tok){
 
     std::string test = Utils::to_upper(str);
     if(test == "MACRO"){
-        tok = std::make_pair(str, MACRO);
+        tok = std::make_pair(test, MACRO);
     } else if(test == "EQU"){
-        tok = std::make_pair(str, EQU);
+        tok = std::make_pair(test, EQU);
     } else if(test == "IF"){
-        tok = std::make_pair(str, IF);
+        tok = std::make_pair(test, IF);
     } else if(test == "ENDMACRO"){
-        tok = std::make_pair(str, ENDMACRO);
+        tok = std::make_pair(test, ENDMACRO);
     } else if(is_opcode(test)){
-        tok = std::make_pair(str, OP);
+        tok = std::make_pair(test, OP);
     } else if(test == "SECTION") {
-        tok = std::make_pair(str, SEC);
+        tok = std::make_pair(test, SEC);
     } else if(test == "SPACE" || test == "CONST") {
-        tok = std::make_pair(str, DIR);
+        tok = std::make_pair(test, DIR);
     } else {
-        tok = std::make_pair(str, -1);
+        tok = std::make_pair(test, -1);
     }
 
     return true;
@@ -255,7 +255,7 @@ std::vector<Token> Pre_processor::_filter_line(std::string &line, int lst_line){
             } else if(lex_analyser(curr_token_str) == 2){
                 __errs.push_back(Error(SEM_ERR, lst_line + 1, "Palavra reservada " + curr_token_str + " nao pode ser uma label.", __input_name));
             }
-            next_tokens.push_back(std::make_pair(curr_token_str, LABEL));
+            next_tokens.push_back(std::make_pair(Utils::to_upper(curr_token_str), LABEL));
             curr_token_str = "";
             continue;
         }

@@ -30,6 +30,10 @@ TEST_CASE("Test SECTION DATA", "[second_pass]"){
     proc.run();
     errs = proc.get_errors();
 
+    for(Error er : errs){
+        std::cout << er << std::endl;    
+    }
+
     REQUIRE((errs.size()) == 15);
 
     REQUIRE(errs[0].get_code() == SEM_ERR);
