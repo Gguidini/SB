@@ -72,12 +72,19 @@ TEST_CASE("Test SECTION detection", "[section]"){
         std::cout << err << std::endl;
     }
 }
-// TODO: Detecção de erros
-// Duas labels seguidas é erro
-// Label já definida
-// Tentando definir dado na seção TEXT
-// Tentando definir não dado na seção DATA
-// Definir qualquer label (que não seja diretiva) fora de qualquer das seções
+
+TEST_CASE("Test labels", "[first_pass]"){
+    Pre_processor proc("assets/test_labels.txt");
+    proc.run();
+    std::vector<Error> errs = proc.get_errors();
+    for(Error err : errs){
+       std::cout << err << std::endl;
+    }
+    REQUIRE((errs.size()) == 9);
+    for(Error err : errs){
+        REQUIRE(err.get_code() == SEM_ERR);
+    }
+}
 
 // TODO: Testar vetor de Tokens
 // Que será passado para a segunda passagem.

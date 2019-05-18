@@ -15,6 +15,7 @@ class Error {
     int __err_line;
     int __err_code;
     std::string __err_msg;
+    std::string __err_file;
 
 public:
     // Constructors
@@ -24,6 +25,7 @@ public:
     int get_line() {return __err_line;}
     int get_code() {return __err_code;}
     std::string get_msg() {return __err_msg;}
+    std::string get_file(){return __err_file;}
 };
 
 Error::Error(){

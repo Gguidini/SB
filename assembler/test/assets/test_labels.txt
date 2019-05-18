@@ -1,0 +1,19 @@
+LABEL: EQU 10   ; Nao eh erro
+
+LABEL: ADD N    ; Erro Label fora de qualquer seção
+NUMBER: SPACE   ; Label fora de seção
+
+SECTION TEXT
+; LABEL: OP <arg?>
+ADD : ADD N ; Erro Label que utiliza palavras reservadas (Erro semântico)
+OLA                         : ADD   ; OK
+VEC: SPACE      ; Erro label fora da seção certa
+ONE: CONST 1    ; Erro label fora da seção certa
+LABEL: ADD N    ; Erro label redefinida
+MESMA: LINHA: ADD N     ; Erro duas labels na mesma linha
+
+SECTION DATA
+; LABEL <SPACE|CONST> <arg?>
+VECTOR: SPACE 2 ; certo
+ZERO: CONST 0   ; certo
+FOR: JMPP N     ; erro semantico

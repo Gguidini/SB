@@ -66,16 +66,25 @@ bool create_tagged_token(std::string str, Token& tok){
 // lex_analyser analisa a string de um token LABEL
 // Para verificar se está de acordo com as regras.
 // Labels: /[\w_][\w\d_]{0,49}/
-bool lex_analyser(std::string token){
-    if(isdigit(token[0])) return false;
-    if((int) token.size() > 50) return false;
+int lex_analyser(std::string token){
+    // Erros lexicos
+    if(isdigit(token[0])) return 1;
+    if((int) token.size() > 50) return 1;
 
     for(char ch : token){
         if((!isalnum(ch)) && (!(ch == '_'))){
-            return false;
+            return 1;
         }
     }
-    return true;
+    // Palavra reservada
+    std::vector<std::string> ops = {
+        "ADD", "SUB", "MULT", "DIV", "JMP", "JMPN", "JMPP",
+        "JMPZ", "COPY", "LOAD", "STORE", "INPUT", "OUTPUT",
+        "STOP", "MACRO", "EQU", "IF", "SPACE", "CONST"};
+    for(std::string str : ops){
+        if(token == str) return 2;
+    }
+    return 0;
 }
 // The pre processor class.
 // Receives the original file to process,
@@ -207,6 +216,12 @@ std::vector<Token> Pre_processor::_filter_line(std::string &line, int lst_line){
         // Erase mutiples spaces and ending space
         // Separates tokens (space is used to separate tokens)
         else if(c == ' ' || c == '\t'){
+            // Jump all spaces until end or next valid char
+            while(i < (int)line.size() and line[i] == ' ') i++;
+            if(i < (int)line.size() && line[i] == ':'){
+                i--;
+                continue;
+            }
             // Check if curr token is any of the preprocessing directives
             // And this space is pointing to the end of it
             Token tok;
@@ -215,8 +230,6 @@ std::vector<Token> Pre_processor::_filter_line(std::string &line, int lst_line){
                 next_tokens.push_back(tok);
                 curr_token_str = "";
             }
-            // Jump all spaces until end or next valid char
-            while(i < (int)line.size() and line[i] == ' ') i++;
             // If has a valid char that is diff from comment, add space                
             if(i < (int)line.size()){   
                 if(line[i] == ';') break;
@@ -227,8 +240,10 @@ std::vector<Token> Pre_processor::_filter_line(std::string &line, int lst_line){
         // Catch labels and push that token.
         // Flush curr line and continue
         else if(c == ':'){
-            if(!lex_analyser(curr_token_str)){
+            if(lex_analyser(curr_token_str) == 1){
                 __errs.push_back(Error(LEX_ERR, lst_line + 1, "Label " + curr_token_str + " inválida"));
+            } else if(lex_analyser(curr_token_str) == 2){
+                __errs.push_back(Error(SEM_ERR, lst_line + 1, "Palavra reservada " + curr_token_str + " nao pode ser uma label."));
             }
             next_tokens.push_back(std::make_pair(curr_token_str, LABEL));
             curr_token_str = "";
@@ -306,15 +321,22 @@ std::vector<std::string> Pre_processor::run(){
             } else if(pair.second == LABEL) {
                 // Marca que possui uma label que talvez deva ir para a tabela de símbolos
                 has_label = true;
+                if(tokens[i+1].second == LABEL){
+                    __errs.push_back(Error(SEM_ERR, curr_line, "Duas labels com o mesmo valor (na mesma linha)"));
+                }
             } else if(pair.second == OP){
                 // Aumenta o contador de endereços
                 add_addrs += __instructions[pair.first].size();
             } else if(pair.second == DIR){
                 // Aumenta o contador de endereços
+                std::string err = "";
+                int v = Utils::digit_value(tokens[i+1].first, err);
                 if(Utils::to_upper(pair.first) == "CONST"){
                     add_addrs += 1;
-                } else if(Utils::is_digit(tokens[i+1].first)){
-                    add_addrs += stoi(tokens[i+1].first);
+                } else if(err == ""){
+                    add_addrs += v;
+                } else if(err != "\n"){
+                    __errs.push_back(Error(LEX_ERR, curr_line, err));
                 } else {
                     add_addrs += 1;
                 }
@@ -481,8 +503,14 @@ std::vector<std::string> Pre_processor::run(){
             // Se tem uma label, mas nenhuma das diretivas de pre processador,
             // Entao esta label vai para a tabela de simbolos.
             // LABEL: <op ou dir>
+            if(tokens[0].second != LABEL){
+                __errs.push_back(Error(SYN_ERR, curr_line, "Label deve estar no inicio da linha"));
+            }
             if(__symbol_table.find(tokens[0].first) != __symbol_table.end()){
-                // TODO: Adicionar erro de label ja definida
+                __errs.push_back(Error(SEM_ERR, curr_line, "Redefinição de label " + tokens[0].first));
+            }
+            if(curr_section == -1){
+                __errs.push_back(Error(SEM_ERR, curr_line, "Label " + tokens[0].first + " precisa estar dentro de alguma section"));
             }
             bool jumpable = false, constant = false, const_zero = false, vector = false;
             int vec_size = 0;
@@ -491,14 +519,16 @@ std::vector<std::string> Pre_processor::run(){
                 if(tokens[1].second == OP){
                     jumpable = true;
                 } else {
-                    // TODO: Adicionar erros de label inválida na seção TEXT
+                    __errs.push_back(Error(SEM_ERR, curr_line, "Label " + tokens[0].first + " não pode ser definida na section text"));
                 }
             } else if(curr_section == SEC_DATA){
                 // LABEL: <dir>
                 if(tokens[1].second == DIR){
-                    if(Utils::to_upper(tokens[1].first) == "SPACE" && Utils::is_digit(tokens[2].first)){
+                    std::string err = "";
+                    int s = Utils::digit_value(tokens[2].first, err);
+                    if(Utils::to_upper(tokens[1].first) == "SPACE" && err == ""){
                         vector = true;
-                        vec_size = stoi(tokens[2].first);
+                        vec_size = s;
                     } else if(Utils::to_upper(tokens[1].first) == "CONST"){
                         constant = true;
                         if(tokens[2].first == "0"){
@@ -506,7 +536,7 @@ std::vector<std::string> Pre_processor::run(){
                         }
                     }
                 } else{
-                    // TODO: Adicionar erro de label inválida na seção text
+                    __errs.push_back(Error(SEM_ERR, curr_line, "Label " + tokens[0].first + " não pode ser definida na section data"));
                 }
             }
                     
@@ -616,8 +646,10 @@ void Pre_processor::_expand_equs(std::vector<Token> curr_tokens, int& curr_line)
         if( curr_tokens[0].second == LABEL &&
             curr_tokens[1].second == EQU &&
             curr_tokens[2].second == -1){
-            if(Utils::is_digit(curr_tokens[2].first)){
-            __equs[curr_tokens[0].first] = stoi(curr_tokens[2].first);
+            std::string err = "";
+            int v = Utils::digit_value(curr_tokens[2].first, err);
+            if(err == ""){
+                __equs[curr_tokens[0].first] = v;
             } else {
                 __errs.push_back(Error(SYN_ERR, curr_line, "Argumento EQU deve ser numerico"));
             }

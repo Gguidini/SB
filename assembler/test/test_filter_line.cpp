@@ -18,6 +18,11 @@ TEST_CASE("Filter lines correctly", "[pre_processor]"){
     std::ifstream test_file("assets/test_filter_lines.txt");
     std::vector<std::pair<std::string, int>> token;
     std::string line;
+    // 0th line - section
+    getline(test_file, line);
+    token = proc._filter_line(line);
+    REQUIRE(token.size() == 3);
+    REQUIRE(token[0] == std::make_pair(std::string("SECTION"), SEC));
     // 1st line - empty
     getline(test_file, line);
     token = proc._filter_line(line);
@@ -125,7 +130,7 @@ TEST_CASE("Testing detection of lexical errors", "[error]"){
     REQUIRE(errs.size() == 5);
     for(int i = 0; i < 5; i++){
         REQUIRE(errs[i].get_code() == LEX_ERR);
-        REQUIRE(errs[i].get_line() == (3 + i));
+        REQUIRE(errs[i].get_line() == (5 + i));
         std::cout << errs[i] << std::endl;
     }
 }
