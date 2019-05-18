@@ -131,7 +131,7 @@ public:
     std::unordered_map<std::string, Symbol> get_symbol_table(){return __symbol_table;}
     bool get_done(){return __done;}
     // Run
-    std::vector<std::string> run();
+    std::vector<Token> run();
     // Generate output
     std::string generate_output();
     // Internal use (public for testing purposes)
@@ -269,9 +269,10 @@ std::vector<Token> Pre_processor::_filter_line(std::string &line, int lst_line){
 // run processes de original file.
 // Saves processed lines in __buffer. Returns this value.
 // TODO: retornar vetor de Tokens para a segunda passagem.
-std::vector<std::string> Pre_processor::run(){
+std::vector<Token> Pre_processor::run(){
     
     std::vector<std::string> processed_file;
+    std::vector<Token> processed_tokens;
     std::string line;
     int curr_line = 0;
     int curr_section = -1;
@@ -566,6 +567,7 @@ std::vector<std::string> Pre_processor::run(){
             }
         }
         processed_file.push_back(processed_line);
+        processed_tokens.insert(processed_tokens.end(), tokens.begin(), tokens.end());
         tokens.clear();
         curr_addrs += add_addrs;
     }
@@ -576,7 +578,7 @@ std::vector<std::string> Pre_processor::run(){
     }
     __done = true;
     __buffer = processed_file;
-    return processed_file;
+    return processed_tokens;
 }
 
 // _identify_section identifica qual a seção que está sendo aberta.
