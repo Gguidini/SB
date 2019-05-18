@@ -7,6 +7,7 @@ O montador produz um arquivo pre-processado (extensão .pre) e um arquivo objeto
 # Autores
 
 Giovanni M Guidini - 16/0122660
+
 Thiago Veras Machado - 16/0146682
 
 # Compilando o projeto
@@ -26,11 +27,22 @@ Isso deverá gerar o executável `tradutor`. Assumindo que você esteja usando o
 $ ./tradutor /path/to/file.asm
 ```
 
+**Nota:** Qualquer arquivo de saída gerado será criado na mesma pasta que o *arquivo de entrada*.
+
 ## Compilando os testes automáticos
 Foram feitos diversos testes unitários para testar as partes do programa, conforme foram sendo implementadas. Esses testes estão na pasta `test/unit_tests`. Para compilar e executar todos os testes, siga os passos abaixo.
 
 ``` bash
-$ cd test/unit_tests
+$ cd test/unit_tests/
 $ g++ -std=c++11 -o all_tests test_all.cpp
 $ ./all_tests
 ```
+No total foram feitas 349 assertions em 21 casos de teste diferentes.
+
+## Testes manuais
+Além dos testes automáticos o sistema foi testado com outros arquivos. Esses arquivos estão reunidos na pasta `test/sys_tests`. Os arquivos de teste são os `.asm`. Todos os outros foram gerados pelo montados.
+
+# Plataformas testadas
+O projeto foi testado com sucesso nos sistemas abaixo:
+
+1. Linux, Manjaro 18.0.4 Illyria. g++ (GCC) 8.3.0
