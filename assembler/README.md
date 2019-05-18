@@ -9,4 +9,4 @@ O montador produz um arquivo pre-processado (extensão .pre) e um arquivo objeto
 Giovanni M Guidini - 16/0122660
 Thiago Veras Machado - 16/0146682
 
-# C
+# Compilando o projeto

@@ -198,23 +198,10 @@ std::vector<int> Processor::run(){
 
                         // Have + sign of array
                         if(__tokens[i+1].first == "+"){
-<<<<<<< HEAD
                             
                             get_endline(i);
                             
                             __errs.push_back(Error(SEM_ERR, curr_line, "Parâmetro " + pair.first + " NÃO é um array", __input_name));
-=======
-                            __errs.push_back(Error(SEM_ERR, curr_line, "Parâmetro " + pair.first + " NÃO é um array", __input_name));
-                            
-                            // Ignore that entire line
-                            while(pair.first != "\n"){
-                                i++;
-                                pair = __tokens[i];
-                            }
-                            i--;
-
-                        // CHECK DIV 0, OR STORE CONST, OR JMP TO INVALID LABEL OR INSTRUCTION TO JUMPABLE LABEL
->>>>>>> 3ddef47f813314bf73b9f53d5b6aa8b53d053caa
                         } else{
                             if(current_instruction.mnemonic() == "DIV" and curr_symbol.is_const_zero()){
                                 __errs.push_back(Error(SEM_ERR, curr_line, "Divisão por zero", __input_name));
