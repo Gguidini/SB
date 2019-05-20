@@ -46,3 +46,4 @@ Além dos testes automáticos o sistema foi testado com outros arquivos. Esses a
 O projeto foi testado com sucesso nos sistemas abaixo:
 
 1. Linux, Manjaro 18.0.4 Illyria. g++ (GCC) 8.3.0
+2. Linux, openSUSE Leap 42.3. g++ (SUSE Linux) 4.8.5
