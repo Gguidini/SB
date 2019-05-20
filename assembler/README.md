@@ -45,5 +45,7 @@ Além dos testes automáticos o sistema foi testado com outros arquivos. Esses a
 # Plataformas testadas
 O projeto foi testado com sucesso nos sistemas abaixo:
 
-1. Linux, Manjaro 18.0.4 Illyria. g++ (GCC) 8.3.0
-2. Linux, openSUSE Leap 42.3. g++ (SUSE Linux) 4.8.5
+1. Linux, Manjaro : 18.0.4 Illyria. g++ (GCC) 8.3.0
+2. Linux, openSUSE : Leap 42.3. g++ (SUSE Linux) 4.8.5
+3. Windows : 10.0 Home. g++ MinGW.org GCC-6.3.0-1  (saída fica péssima pela falta de cores)
+4. Ubtuntu Bash, Windows : Ubuntu 18.04.2. Ubuntu 7.3.0-27ubuntu1~18.04
