@@ -231,7 +231,7 @@ std::vector<int> Processor::run(){
                 // Invalid parameter, check if is an insctrction or not defined label
                 else{
                     if(instructions.count(pair.first)){
-                        __errs.push_back(Error(SEM_ERR, curr_line, "Parâmetro não pode ser uma instrução" , __input_name));    
+                        __errs.push_back(Error(SEM_ERR, curr_line, "Parâmetro não pode ser uma instrução (" + pair.first + ")" , __input_name));    
                     } else{
                         __errs.push_back(Error(SEM_ERR, curr_line, "Parâmetro " + pair.first + " não definido", __input_name));
                     }

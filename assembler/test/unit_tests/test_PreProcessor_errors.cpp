@@ -42,7 +42,7 @@ TEST_CASE("Identifies MACRO errors", "[error]"){
     for(Error err : errs){
         std::cout << err << std::endl;
     }
-    REQUIRE((errs.size()) == 7);
+    REQUIRE((errs.size()) == 8);
 
     REQUIRE(errs[0].get_code() == LEX_ERR);
     REQUIRE(errs[0].get_line() == 1);
@@ -62,6 +62,9 @@ TEST_CASE("Identifies MACRO errors", "[error]"){
     REQUIRE(errs[5].get_code() == LEX_ERR);
     REQUIRE(errs[5].get_line() == 20);
 
-    REQUIRE(errs[6].get_code() == SEM_ERR);
-    REQUIRE(errs[6].get_line() == 31);
+    REQUIRE(errs[6].get_code() == LEX_ERR);
+    REQUIRE(errs[6].get_line() == 25);
+
+    REQUIRE(errs[7].get_code() == SEM_ERR);
+    REQUIRE(errs[7].get_line() == 31);
 }

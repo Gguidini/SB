@@ -24,15 +24,18 @@ TEST_CASE("Test SECTION DATA", "[second_pass]"){
     std::unordered_map<std::string, Symbol> symbols = pre_proc.get_symbol_table();
     std::vector<Error> errs = pre_proc.get_errors();
 
-    REQUIRE((errs.size()) == 0);
+    for(Error er : errs){
+        std::cout << er << std::endl;    
+    }
+
+    REQUIRE((errs.size()) == 1);
+    REQUIRE(errs[0].get_line() == 3);
+    std::cout << errs[0] << std::endl;
 
     Processor proc(tokens, symbols, "assets/second_pass/test_second_pass_error.txt");
     proc.run();
     errs = proc.get_errors();
 
-    for(Error er : errs){
-        std::cout << er << std::endl;    
-    }
 
     REQUIRE((errs.size()) == 15);
 

@@ -89,38 +89,38 @@ int digit_value(std::string str, std::string & err){
     if(is_digit(str)){
         return stoi(str) * sinal;
     }
-    if(str.substr(0, 2) == "0d"){
+    if(str.substr(0, 2) == "0D"){
         if(str.size() == 2){
             err = "Número decimal inválido (" + str + ")";
             return 0;
         }
         str = str.substr(2,str.size() - 2);
         if(!is_digit(str)){
-            err = "Número decimal inválido (0d" + str + ")";
+            err = "Número decimal inválido (0D" + str + ")";
             return 0;
         }
         return stoi(str.substr(2,str.size() - 2)) * sinal;
     }
-    if(str[str.size()-1] == 'd'){
+    if(str[str.size()-1] == 'D'){
         if(str.size() == 1){
             err = "Número decimal inválido (" + str + ")";
             return 0;
         }
         str.pop_back();
         if(!is_digit(str)){
-            err = "Número decimal inválido (" + str + "d)";
+            err = "Número decimal inválido (" + str + "D)";
             return 0;
         }
         return stoi(str) * sinal;
     }
-    if(str.substr(0, 2) == "0x"){
+    if(str.substr(0, 2) == "0X"){
         if(str.size() == 2){
             err = "Número hexadecimal inválido (" + str + ")";
             return 0;
         }
         return stox(str.substr(2,str.size() - 2), err) * sinal;
     }
-    if(str[str.size()-1] == 'h'){
+    if(str[str.size()-1] == 'H'){
         if(str.size() == 1){
             err = "Número hexadecimal inválido (" + str + ")";
             return 0;

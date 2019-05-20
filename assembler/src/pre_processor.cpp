@@ -212,6 +212,7 @@ std::string Pre_processor::generate_output(){
 // Classificada como publica para podermos testá-la mais facilmente.
 // Recebe uma linha de um arquivo e a separa em um vetor de tokens.
 // Cada token é um string e uma anotação daquela string.
+// &A, &B MACRO     ;
 std::vector<Token> Pre_processor::_filter_line(std::string &line, int lst_line){
     // Return value
     std::vector<Token> next_tokens;
@@ -361,9 +362,27 @@ std::vector<Token> Pre_processor::run(){
                 } else {
                     add_addrs += 1;
                 }
-
             } else if(pair.second == -1){
                 // Processa itens sem marcação.
+
+                // Verifica se item pode estar escrito errado
+                std::vector<std::string> splited_token = Utils::split(pair.first, ',');
+
+                for(std::string tok : splited_token){
+                    if(tok == "+" || has_macro || tok[0] == '&'){
+                        // + nao esta escrito errado
+                        // Se tiver macro os tokens relativos a parametros tem que
+                        // ser vistos depois.
+                        continue;
+                    }
+                    std::string err = "";
+                    Utils::digit_value(tok, err);
+                    if((err != "" && err != "\n") && lex_analyser(tok) == 1){
+                        __errs.push_back(Error(LEX_ERR, curr_line, "Operando " + tok + " inválido", __input_name));
+                    } else if((err != "" && err != "\n") && lex_analyser(tok) == 2){
+                        __errs.push_back(Error(SEM_ERR, curr_line, "Palavra reservada " + tok + " nao pode ser operando.", __input_name));
+                    }
+                }
                 // Prováveis LABELS em uso
                 if(__equs.find(pair.first) != __equs.end()){
                     // Expand EQU
@@ -570,10 +589,16 @@ void Pre_processor::_expand_macros(std::vector<Token> tokens, int& curr_line){
         for(int i = 0; i < (int) splited_token.size(); i++){
             current_parameter = splited_token[i];
             if(current_parameter[0] != '&'){
-                __errs.push_back(Error(LEX_ERR, curr_line, "Parametro de MACRO inválido", __input_name));
+                __errs.push_back(Error(LEX_ERR, curr_line, "Parametro de MACRO inválido (nao inicia com &)", __input_name));
             } else{
                 // Remove &
                 current_parameter.erase(current_parameter.begin());
+                // Analise lexica do parametro
+                if(lex_analyser(current_parameter) == 1){
+                    __errs.push_back(Error(LEX_ERR, curr_line, "Parametro de MACRO " + current_parameter + " inválida", __input_name));
+                } else if(lex_analyser(current_parameter) == 2){
+                    __errs.push_back(Error(SEM_ERR, curr_line, "Palavra reservada " + current_parameter + " nao pode ser um parâmetro de MACRO.", __input_name));
+                }
             }
             // Create hash table with Parameter and current generic ID
             parameters[current_parameter] = '1' + i;
