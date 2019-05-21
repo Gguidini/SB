@@ -37,7 +37,7 @@ $ cd test/unit_tests/
 $ g++ -std=c++11 -o all_tests test_all.cpp
 $ ./all_tests
 ```
-No total foram feitas 349 assertions em 21 casos de teste diferentes.
+No total foram feitas 352 assertions em 21 casos de teste diferentes.
 
 ## Testes manuais
 Além dos testes automáticos o sistema foi testado com outros arquivos. Esses arquivos estão reunidos na pasta `test/sys_tests`. Os arquivos de teste são os `.asm`. Todos os outros foram gerados pelo montados.
