@@ -56,21 +56,28 @@ TEST_CASE("Test SECTION detection", "[section]"){
     Pre_processor proc("assets/first_pass/test_section_error.txt");
     proc.run();
     std::vector<Error> errs = proc.get_errors();
-    REQUIRE(errs.size() == 4);
-    // Section UNDEFINED
-    REQUIRE(errs[0].get_code() == SYN_ERR);
-    REQUIRE(errs[0].get_line() == 2);
-    // Redefinition of section data
-    REQUIRE(errs[1].get_code() == SEM_ERR);
-    REQUIRE(errs[1].get_line() == 3);
-    // Section with no parameter
-    REQUIRE(errs[2].get_code() == SYN_ERR);
-    REQUIRE(errs[2].get_line() == 4);
-    // Section text missing
-    REQUIRE(errs[3].get_code() == SEM_ERR);
+
     for(Error err : errs){
         std::cout << err << std::endl;
     }
+    REQUIRE(errs.size() == 6);
+    // Section DATA before text
+    REQUIRE(errs[0].get_code() == SEM_ERR);
+    REQUIRE(errs[0].get_line() == 1);
+    // Section UNDEFINED
+    REQUIRE(errs[1].get_code() == SYN_ERR);
+    REQUIRE(errs[1].get_line() == 2);
+    // Redefinition of section data
+    REQUIRE(errs[2].get_code() == SEM_ERR);
+    REQUIRE(errs[2].get_line() == 3);
+    // Section DATA before text
+    REQUIRE(errs[3].get_code() == SEM_ERR);
+    REQUIRE(errs[3].get_line() == 3);
+    // Section with no parameter
+    REQUIRE(errs[4].get_code() == SYN_ERR);
+    REQUIRE(errs[4].get_line() == 4);
+    // Section text missing
+    REQUIRE(errs[5].get_code() == SEM_ERR);
 }
 
 TEST_CASE("Test labels", "[first_pass]"){

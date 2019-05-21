@@ -147,12 +147,19 @@ std::vector<int> Processor::run(){
                 i++;
                 pair = __tokens[i];
 
+                if(pair.first == "\n"){
+                    __errs.push_back(Error(SYN_ERR, curr_line, "Instrução " + current_instruction.mnemonic() + " está faltando parâmetro", __input_name));
+                    continue;
+                }
+               
                 // Offset to sum with array (if needed)
                 int offset = 0;
 
                 // If that parameter is in symbol tabel
                 if(__symbol_table.count(pair.first)){
-
+                    if(__tokens[i+1].first != "\n" and __tokens[i+1].first != "+"){
+                        __errs.push_back(Error(SYN_ERR, curr_line, "Instrução " + current_instruction.mnemonic() + " com mais de 1 parâmetro", __input_name));
+                    }
                     // Get curr symble object
                     Symbol curr_symbol = __symbol_table[pair.first];
                     std::string curr_symbol_name = pair.first;
@@ -197,11 +204,20 @@ std::vector<int> Processor::run(){
 
                         // Have + sign of array
                         if(__tokens[i+1].first == "+"){
-                            
+                            i += 2;
+                            if(__tokens[i+1].first != "\n"){
+                                __errs.push_back(Error(SYN_ERR, curr_line, "Instrução " + current_instruction.mnemonic() + " com mais de 1 parâmetro", __input_name));
+                            }
+                                                       
                             get_endline(i);
                             
                             __errs.push_back(Error(SEM_ERR, curr_line, "Parâmetro " + pair.first + " NÃO é um array", __input_name));
                         } else{
+                            i++;
+                            pair = __tokens[i];
+                            if(pair.first != "\n"){
+                                __errs.push_back(Error(SYN_ERR, curr_line, "Instrução " + current_instruction.mnemonic() + " com mais de 1 parâmetro", __input_name));
+                            }
                             if(current_instruction.mnemonic() == "DIV" and curr_symbol.is_const_zero()){
                                 __errs.push_back(Error(SEM_ERR, curr_line, "Divisão por zero", __input_name));
                             } 
@@ -221,12 +237,6 @@ std::vector<int> Processor::run(){
                     __object_code.push_back(__symbol_table[curr_symbol_name].get_value() + offset);
 
                     // Check if have more than 1 parameter 
-                    if(__tokens[i+1].first != "\n"){
-                        __errs.push_back(Error(SYN_ERR, curr_line, "Instrução " + current_instruction.mnemonic() + " com mais de 1 parâmetro", __input_name));
-                        
-                        // Ignore the entire parameters of that line
-                        get_endline(i);
-                    }
                 }
                 // Invalid parameter, check if is an insctrction or not defined label
                 else{
@@ -238,7 +248,7 @@ std::vector<int> Processor::run(){
                     // Push 0 to continue the tests
                     __object_code.push_back(0);
                 }
-
+               
                 // Ignore the rest of the line (case array not valid, then ignore all + OFFSET and that stuff)
                 get_endline(i);
                 
@@ -249,9 +259,14 @@ std::vector<int> Processor::run(){
                 // Get first parameter
                 i++;
                 pair = __tokens[i];
-                std::vector<std::string> split = Utils::split(pair.first, ',');
                 std::string old = pair.first;
-                pair.first = split[0];
+
+                if(pair.first == "\n"){
+                    __errs.push_back(Error(SYN_ERR, curr_line, "Instrução " + current_instruction.mnemonic() + " está sem parâmetros", __input_name));
+                    continue;
+                }
+                
+
                 // Array offset
                 int offset = 0;
                 // Checks if that parameter is in symbol table
@@ -266,8 +281,6 @@ std::vector<int> Processor::run(){
                         if(__tokens[i+1].first == "+"){
                             i += 2;
                             pair = __tokens[i];
-                            std::vector<std::string> split = Utils::split(pair.first, ',');
-                            pair.first = split[0];
                             std::string err;
                             offset = Utils::digit_value(pair.first, err);
                             if(err != ""){
@@ -283,23 +296,12 @@ std::vector<int> Processor::run(){
                                 __errs.push_back(Error(SEM_ERR, curr_line, "Seg fault, OFFSET " + pair.first + " superior ao tamanho do array", __input_name));
                                 offset = 0;
                             }
-                            pair.first.clear();
-                            if(split.size() > 1) pair.first = split[1];
                         }
                     } else{
                         if(__tokens[i+1].first == "+"){
                             __errs.push_back(Error(SEM_ERR, curr_line, "Parâmetro " + pair.first + " NÃO é um array", __input_name));
                             i += 2;
                             pair = __tokens[i];
-                            std::vector<std::string> split = Utils::split(pair.first, ',');
-                            pair.first.clear();
-                            if(split.size() > 1) pair.first = split[1];
-                        }
-                        else{
-                            pair.first = old;
-                            std::vector<std::string> split = Utils::split(pair.first, ',');
-                            pair.first.clear();
-                            if(split.size() > 1) pair.first = split[1];
                         }
                     }
 
@@ -312,23 +314,15 @@ std::vector<int> Processor::run(){
                     if(__tokens[i+1].first == "+"){
                         i += 2;
                         pair = __tokens[i];
-                        std::vector<std::string> split = Utils::split(pair.first, ',');
-                        pair.first.clear();
-                        if(split.size() > 1) pair.first = split[1];
                     }
-                    else{
-                        std::vector<std::string> split = Utils::split(pair.first, ',');
-                        pair.first.clear();
-                        if(split.size() > 1) pair.first = split[1];
-                    }
-
                 }
-
-                if(pair.first == ""){
-                    i++;
-                    pair = __tokens[i];
-                }
+                i++;
+                pair = __tokens[i];
                 offset = 0;
+                if(pair.first == "\n"){
+                    __errs.push_back(Error(SYN_ERR, curr_line, "Instrução " + current_instruction.mnemonic() + " está faltando o segundo parâmetro", __input_name));
+                    continue;
+                }
 
                 if(__symbol_table.count(pair.first)){
 

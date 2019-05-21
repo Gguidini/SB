@@ -131,14 +131,14 @@ TEST_CASE("Test MACRO processing", "[directives]") {
         lines = read_file(out_name);
         std::vector<std::string> expected{
             "HELLOW WORLD",
-            "COPY X,Y",
-            "COPY A,TEMP",
-            "COPY B,A",
-            "COPY TEMP,B",
+            "COPY X, Y",
+            "COPY A, TEMP",
+            "COPY B, A",
+            "COPY TEMP, B",
             "GOOD BYE WORLD",
-            "COPY A,TEMP",
-            "COPY B,A",
-            "COPY TEMP,B",
+            "COPY A, TEMP",
+            "COPY B, A",
+            "COPY TEMP, B",
         };
         REQUIRE(lines.size() == expected.size());
         for(int i = 0; i < (int)expected.size(); i++){
@@ -154,14 +154,14 @@ TEST_CASE("Test MACRO processing", "[directives]") {
         lines = read_file(out_name);
         std::vector<std::string> expected{
             "HELLOW WORLD",
-            "COPY A,B",
-            "COPY A,Z",
-            "COPY B,A",
-            "COPY Z,B",
+            "COPY A, B",
+            "COPY A, Z",
+            "COPY B, A",
+            "COPY Z, B",
             "GOOD BYE WORLD",
-            "COPY B,Z",
-            "COPY A,B",
-            "COPY Z,A"
+            "COPY B, Z",
+            "COPY A, B",
+            "COPY Z, A"
         };
         REQUIRE(lines.size() == expected.size());
         for(int i = 0; i < (int)expected.size(); i++){

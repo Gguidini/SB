@@ -14,6 +14,7 @@
 #include <vector>
 #include <algorithm>
 #include <map>
+#include <ctype.h>
 
 namespace Utils {
 
@@ -76,6 +77,24 @@ int stox(std::string str, std::string &err){
    return sum;
 }
 
+int string_to_int(std::string str, std::string &err){
+    std::reverse(str.begin(), str.end());
+    std::unordered_map<char,int> value;
+    for(int i = 0; i < 10; i++) value['0' + i] = i;
+    int base = 1;
+    int sum = 0;
+    for(auto digit : str){
+       if(!value.count(toupper(digit))){
+           std::reverse(str.begin(), str.end());
+           err = "Numero decimaç inválido (" + str + ")";
+           return 0;
+       }
+      sum += (base * value[toupper(digit)]);
+      base *= 10;
+   }
+   return sum;
+}
+
 int digit_value(std::string str, std::string & err){
     if(str == "\n"){
         err = "\n";
@@ -87,7 +106,7 @@ int digit_value(std::string str, std::string & err){
         str = str.substr(1,str.size()-1);
     }
     if(is_digit(str)){
-        return stoi(str) * sinal;
+        return string_to_int(str, err) * sinal;
     }
     if(str.substr(0, 2) == "0D"){
         if(str.size() == 2){
@@ -99,7 +118,7 @@ int digit_value(std::string str, std::string & err){
             err = "Número decimal inválido (0D" + str + ")";
             return 0;
         }
-        return stoi(str.substr(2,str.size() - 2)) * sinal;
+        return string_to_int(str.substr(2,str.size() - 2), err) * sinal;
     }
     if(str[str.size()-1] == 'D'){
         if(str.size() == 1){
@@ -111,7 +130,7 @@ int digit_value(std::string str, std::string & err){
             err = "Número decimal inválido (" + str + "D)";
             return 0;
         }
-        return stoi(str) * sinal;
+        return string_to_int(str, err) * sinal;
     }
     if(str.substr(0, 2) == "0X"){
         if(str.size() == 2){

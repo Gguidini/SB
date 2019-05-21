@@ -81,9 +81,10 @@ TEST_CASE("Filter lines correctly", "[pre_processor]"){
     // 10th line - COPY
     getline(test_file, line);
     token = proc._filter_line(line);
-    REQUIRE(token.size() == 3);
+    REQUIRE(token.size() == 4);
     REQUIRE(token[0].second == OP);
-    REQUIRE(token[1].first == "A,B");
+    REQUIRE(token[1].first == "A");
+    REQUIRE(token[2].first == "B");
 }
 
 TEST_CASE("Testing filter lines for EQU"){
