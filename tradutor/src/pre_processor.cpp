@@ -345,7 +345,7 @@ std::vector<Token> Pre_processor::run(){
                 if(curr_section != SEC_TEXT){
                     __errs.push_back(Error(SEM_ERR, curr_line, "Operação " + pair.first + " nao pode estar fora da section text", __input_name));
                 }
-                add_addrs += __instructions[pair.first].size();
+                add_addrs += 0;
             } else if(pair.second == DIR){
                 // Aumenta o contador de endereços
                 if(curr_section != SEC_DATA){

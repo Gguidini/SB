@@ -1,0 +1,10 @@
+; Arquivo de teste para o processador de linhas
+; de assembly inventado.
+; Garantido que NÃO HAVERÁ ERROS
+
+SECTION Data
+INPUT N1
+COPY N1, N2
+S_INPUT S1, 4
+STOP
+N2: CONST 1
