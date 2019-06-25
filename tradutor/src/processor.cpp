@@ -7,6 +7,7 @@
 #include <vector>
 #include <unordered_map>
 #include <fstream>
+#include <iostream>
 #include "../lib/opcodes.h"
 #include "../lib/utils.h"
 
