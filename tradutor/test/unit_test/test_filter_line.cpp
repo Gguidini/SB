@@ -14,8 +14,8 @@
 
 TEST_CASE("Filter lines correctly", "[pre_processor]"){
 
-    Pre_processor proc("assets/test_process_line.txt");
-    std::ifstream test_file("assets/test_process_line.txt");
+    Pre_processor proc("assets/pre_processor/test_process_line.txt");
+    std::ifstream test_file("assets/pre_processor/test_process_line.txt");
     std::vector<std::pair<std::string, int>> token;
     std::string line;
     // Comment and blank lines are supposed to be blank
@@ -63,8 +63,8 @@ TEST_CASE("Filter lines correctly", "[pre_processor]"){
 }
 
 TEST_CASE("Testing filter lines for EQU"){
-    Pre_processor proc("assets/test_PreProcessor_equ.txt");
-    std::ifstream test_file("assets/test_PreProcessor_equ.txt");
+    Pre_processor proc("assets/pre_processor/test_PreProcessor_equ.txt");
+    std::ifstream test_file("assets/pre_processor/test_PreProcessor_equ.txt");
     std::vector<std::pair<std::string, int>> token;
     std::string line;
     // 1st line - EQU define
