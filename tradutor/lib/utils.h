@@ -16,6 +16,19 @@
 #include <map>
 #include <ctype.h>
 
+// defines for Sections
+#define SEC 100
+#define SEC_TEXT 101
+#define SEC_DATA 102
+
+// defines token symbols
+#define LABEL 0
+#define EQU 2
+#define IF 3
+#define OP 4
+#define DIR 6     // SPACE or CONST
+#define ENDL 11
+
 namespace Utils {
 
 std::vector<std::string> split(std::string &patt, char s){

@@ -22,19 +22,6 @@
 #include "errors.cpp"
 #include "symbols.cpp"
 
-// defines for Sections
-#define SEC 100
-#define SEC_TEXT 101
-#define SEC_DATA 102
-
-// defines token symbols
-#define LABEL 0
-#define EQU 2
-#define IF 3
-#define OP 4
-#define DIR 6     // SPACE or CONST
-#define ENDL 11
-
 typedef std::pair<std::string, int> Token;
 
 // create_tagged_token analisa uma string para ver se é um token reconhecido ou não.
