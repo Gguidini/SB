@@ -99,7 +99,7 @@ int string_to_int(std::string str, std::string &err){
     for(auto digit : str){
        if(!value.count(toupper(digit))){
            std::reverse(str.begin(), str.end());
-           err = "Numero decimaç inválido (" + str + ")";
+           err = "Numero decimal inválido (" + str + ")";
            return 0;
        }
       sum += (base * value[toupper(digit)]);
