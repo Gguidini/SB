@@ -53,6 +53,67 @@ std::string Processor::generate_output(){
 }
 
 std::vector<std::string> Processor::run() {
-    return std::vector<std::string>();
+    int size = __token_stream.size();
+    std::vector<std::string> output_lines;
+    // Usada somente para DIRs
+    std::string line_with_label;
+    int curr_section = -1;
+    for(int i = 0; i < size; i++){
+        Token curr = __token_stream[i];
+        // Triagem dos tokens diferentes
+        switch (curr.second){
+            // Section TEXT or DATA
+            case SEC:
+                if(__token_stream[i+1].first == "TEXT"){
+                    curr_section = SEC_TEXT;
+                    output_lines.push_back("section .text");
+                    output_lines.push_back("global _start");
+                    output_lines.push_back("_start:");
+                } else {
+                    curr_section = SEC_DATA;
+                    output_lines.push_back("section .data");
+                }
+                // Pula o token DATA ou TEXT
+                i++;
+                break;
+            // Diretiva SPACE ou CONST
+            // TODO: Verificar se devem reservar uma double word mesmo.
+            case DIR:
+                // Pega a Label que foi colocada anteriormente
+                line_with_label = output_lines.back();
+                output_lines.pop_back();
+                // Adiciona a diretiva
+                if(curr.first == "SPACE"){
+                    line_with_label += " dd 0";
+                    if(__token_stream[i+1].second != ENDL){
+                        // SPACE <size> <\n>
+                        std::string err = "";
+                        int value = Utils::digit_value(__token_stream[i+1].first, err);
+                        for(int k = 1; k < value; k++){
+                            line_with_label += ", 0";
+                        }
+                        // Pula token <size>
+                        i++;
+                    }
+                } else {
+                    // CONST <value>
+                    line_with_label += " dd " + __token_stream[i+1].first;
+                    // Pula token <value>
+                    i++;
+                }
+                output_lines.push_back(line_with_label);
+                break;
+            case LABEL:
+                if(curr_section = SEC_DATA){
+                    output_lines.push_back(curr.first);
+                } else {
+                    output_lines.push_back(curr.first + ":");
+                }
+                break;
+            case OP:
+                // TODO: adicionar a tradução de instruções
+                break;
+        }
+    }
 }
 #endif
