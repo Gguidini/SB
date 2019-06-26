@@ -16,3 +16,6 @@ tradutor/test/unit_test/catch_framework.hpp
 
 # arquivos gerados pelo pre processador
 assembler/test/assets/*.pre
+
+# Folder de arquivos IA-32
+IA-32_tests/
