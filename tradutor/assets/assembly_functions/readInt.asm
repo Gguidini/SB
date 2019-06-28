@@ -9,7 +9,7 @@ crlf db 0xd, 0xa
 
 section .bss
 number resd 1; int 32 bits
-string resb 12
+__string resb 12
 
 section .text
 global _start
@@ -50,11 +50,11 @@ readInt:
     ; Lê do teclado
     mov eax, 3
     mov ebx, 0
-    mov ecx, string
+    mov ecx, __string
     mov edx, 12
     int 0x80
     ; Verifica se primeiro char é '-' (0x2D)
-    cmp byte [string], 0x2D
+    cmp byte [__string], 0x2D
     jne positive_integer
     mov ecx, 1      ; Bytes lidos
     mov SIGN, 1
@@ -66,7 +66,7 @@ initialize_variables:
     sub edx, edx
 while:      
     ; Decode number
-    mov dl, [string + ecx] ; Load bite in dl
+    mov dl, [__string + ecx] ; Load bite in dl
     cmp edx, 0x0A   ; Compare with LF
     je done
     cmp edx, 0x0D   ; Compare with CR
@@ -77,7 +77,7 @@ while:
     add eax, ebx    ; total = eax * 10
     sub dl, 0x30    ; Subtrai '0'
     add eax, edx    ; eax + novo byte
-    inc ecx         ; Prox byte da string
+    inc ecx         ; Prox byte da __string
     jmp while
 done:       
     ; Verifica se precisa trocar o sinal
@@ -117,14 +117,14 @@ putInt:
     mov eax, [esi]
     sub ecx, ecx
     mov ebx, 10
-    ; garante que o primeiro byte de string eh 0
-    mov byte [string], 0
+    ; garante que o primeiro byte de __string eh 0
+    mov byte [__string], 0
     ; verifica se o número é negativo
     cmp eax, 0
     jg is_positive
     je is_zero
-    ; como é negativo, coloca '-' no início da string
-    mov byte [string], 0x2D
+    ; como é negativo, coloca '-' no início da __string
+    mov byte [__string], 0x2D
     inc ecx
     neg eax
     jmp is_positive
@@ -146,14 +146,14 @@ is_positive:
     jmp is_positive
 print:
     sub ebx, ebx
-    cmp byte [string], 0
+    cmp byte [__string], 0
     je print_loop
     inc ebx
 print_loop:
     cmp ebx, ecx
     je ok_to_print
     pop dx
-    mov byte [string + ebx], dl
+    mov byte [__string + ebx], dl
     inc ebx
     jmp print_loop
 ok_to_print:
@@ -162,7 +162,7 @@ ok_to_print:
     mov eax, 4
     mov ebx, 1
     mov edx, ecx
-    mov ecx, string
+    mov ecx, __string
     int 0x80
     ; imprime quebra de linha
     mov eax, 4

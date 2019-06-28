@@ -13,7 +13,7 @@ min dd -2147483648
 crlf db 0xd, 0xa
 
 section .bss
-string resb 11
+__string resb 11
 section .text
 global _start
 _start:
@@ -55,14 +55,14 @@ putInt:
     mov eax, [esi]
     sub ecx, ecx
     mov ebx, 10
-    ; garante que o primeiro byte de string eh 0
-    mov byte [string], 0
+    ; garante que o primeiro byte de __string eh 0
+    mov byte [__string], 0
     ; verifica se o número é negativo
     cmp eax, 0
     jg is_positive
     je is_zero
-    ; como é negativo, coloca '-' no início da string
-    mov byte [string], 0x2D
+    ; como é negativo, coloca '-' no início da __string
+    mov byte [__string], 0x2D
     inc ecx
     neg eax
     jmp is_positive
@@ -84,14 +84,14 @@ is_positive:
     jmp is_positive
 print:
     sub ebx, ebx
-    cmp byte [string], 0
+    cmp byte [__string], 0
     je print_loop
     inc ebx
 print_loop:
     cmp ebx, ecx
     je ok_to_print
     pop dx
-    mov byte [string + ebx
+    mov byte [__string + ebx
     ], dl
     inc ebx
     jmp print_loop
@@ -101,7 +101,7 @@ ok_to_print:
     mov eax, 4
     mov ebx, 1
     mov edx, ecx
-    mov ecx, string
+    mov ecx, __string
     int 0x80
     ; imprime quebra de linha
     mov eax, 4
