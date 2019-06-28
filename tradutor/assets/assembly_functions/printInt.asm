@@ -1,5 +1,6 @@
 ; Função para escrever inteiros na tela
 ; Aceita números positivos e negativos
+; TODO: Verificar se enter conta nos bites escritos
 
 section .data
 zero dd 0
@@ -42,7 +43,6 @@ _start:
 ; Endereço do número passado na pilha
 ; Retorna número de bytes lidos em EAX 
 putInt:
-    ; Cria frame com 2 variáveis locais
     enter 0,0
     ; Referencia para endereço do número
     %define NUMBER_SRC dword [ebp+8]

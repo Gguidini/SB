@@ -3,6 +3,7 @@
 ; INT MAX = 2,147,483,647
 ; INT MIN = -2,147,483,648
 ; NÃO FAZ DETECÇÃO DE OVERFLOW !!!
+; TODO: Verificar se enter conta nos bytes escritos
 section .data
 crlf db 0xd, 0xa
 
