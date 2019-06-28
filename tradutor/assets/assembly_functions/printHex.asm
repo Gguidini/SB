@@ -1,52 +1,45 @@
-; Função para escrever inteiros na tela
-; Aceita números positivos e negativos
+; Função para escrever numeros hexadecimais na tela
+; Aceita números positivos
 
 section .data
 zero dd 0
 one dd 1
 ten dd 0xA
-negative dd -1234
-positive dd 0x10
-max dd 2147483647
-min dd -2147483648
+positive dd 0xBABA0000
+max dd 0xFFFFFFFF
 crlf db 0xd, 0xa
+__hex_table db "0123456789ABCDEF"
 
 section .bss
-__string resb 12
+string resb 12
 
 section .text
 global _start
 _start:
     push dword zero
-    call putInt
+    call putHex
     add esp, 4
     push dword one
-    call putInt
+    call putHex
     add esp, 4
     push dword ten
-    call putInt
-    add esp, 4
-    push dword negative
-    call putInt
+    call putHex
     add esp, 4
     push dword positive
-    call putInt
+    call putHex
     add esp, 4
     push dword max
-    call putInt
-    add esp, 4
-    push dword min
-    call putInt
+    call putHex
     add esp, 4
     mov eax, 1
     mov ebx, 0
     int 0x80
 
-; Função para escrever um inteiro na tela
-; Aceita números positivos e negativos (base 10)
+; Função para escrever um hexadecimal na tela
+; Aceita números positivos (base 16)
 ; Endereço do número passado na pilha
-; Retorna número de bytes lidos em EAX 
-putInt:
+; Retorna número de bytes escritos em EAX 
+putHex:
     enter 0,0
     ; Referencia para endereço do número
     %define NUMBER_SRC dword [ebp+8]
@@ -56,46 +49,35 @@ putInt:
     push edx
     push ebx
     mov esi, NUMBER_SRC
-    mov eax, [esi]
+    mov edx, [esi]
     sub ecx, ecx
-    mov ebx, 10
-    ; garante que o primeiro byte de __string eh 0
-    mov byte [__string], 0
-    ; verifica se o número é negativo
-    cmp eax, 0
-    jg is_positive
-    je is_zero
-    ; como é negativo, coloca '-' no início da __string
-    mov byte [__string], 0x2D
-    inc ecx
-    neg eax
-    jmp is_positive
-is_zero:
+    mov ebx, 16
+    ; verifica se o número é zero
+    cmp edx, 0
+    jne not_zero
+    ; Caso seja 0
     push byte 0x30
     inc ecx
     jmp print
-is_positive:
-    cmp eax, 0
+not_zero:
+    cmp edx, 0
     je print
-    sub edx, edx
-    ; EAX = Numero
-    ; EBX = 10
-    ; EDX.EAX / EBX => EAX; EDX.EAX % EBX => EDX
-    div ebx
-    add edx, 0x30 ; (char) EDX
-    push dx       ; because chars only have 1 byte
+    sub eax, eax    ; Limpa EAX
+    mov al, dl      ; Prox char hexa
+    and al, 0x0F    ; Pega so o ultimo nible
+    mov ebx, __hex_table    ; Carrega tabela de tradução
+    xlatb
+    push ax       ; add byte na string
     inc ecx       ; another byte used
-    jmp is_positive
+    shr edx, 4    ; Proximo char
+    jmp not_zero
 print:
     sub ebx, ebx
-    cmp byte [__string], 0
-    je print_loop
-    inc ebx
 print_loop:
     cmp ebx, ecx
     je ok_to_print
     pop dx
-    mov byte [__string + ebx], dl
+    mov byte [string + ebx], dl
     inc ebx
     jmp print_loop
 ok_to_print:
@@ -104,7 +86,7 @@ ok_to_print:
     mov eax, 4
     mov ebx, 1
     mov edx, ecx
-    mov ecx, __string
+    mov ecx, string
     int 0x80
     ; imprime quebra de linha
     mov eax, 4
@@ -120,4 +102,6 @@ ok_to_print:
     pop esi
     leave
     ret
+
+
 
