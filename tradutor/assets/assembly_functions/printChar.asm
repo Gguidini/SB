@@ -32,7 +32,7 @@ _start:
 putChar:
     enter 0,0
     ; Referencia para endereço do char
-    %define NUMBER_SRC dword [ebp+8]
+    %define CHAR_SRC dword [ebp+8]
     ; Salve registradores que serão usados
     push ebx
     push ecx
@@ -40,7 +40,7 @@ putChar:
     ; imprime o char
     mov eax, 4
     mov ebx, 1
-    mov ecx, NUMBER_SRC
+    mov ecx, CHAR_SRC
     mov edx, 1
     int 0x80
     ; imprime quebra de linha
