@@ -226,7 +226,7 @@ std::vector<std::string> Processor::run() {
                     line_to_add += "push ";
                     line_to_add += __copy_all_operands(i,j);
                     line_to_add += "\n";
-                    if(curr.first == "H_INPUT"){
+                    if(curr.first == "C_INPUT"){
                         line_to_add += "call readChar\n";
                     } else {
                         line_to_add += "call putChar\n";
