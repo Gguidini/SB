@@ -10,6 +10,7 @@
 #include <iostream>
 #include "../lib/opcodes.h"
 #include "../lib/utils.h"
+#include "asm_functions.cpp"
 
 typedef std::pair<std::string, int> Token;
 
@@ -50,6 +51,7 @@ std::string Processor::generate_output(){
     for(std::string str : __output_stream){
         out << str << std::endl;
     }
+    // TODO: adicionar funções de IO
     out.close();
     return __output_name;
 }
@@ -242,8 +244,7 @@ std::vector<std::string> Processor::run() {
                 break;
         }
     }
-
-    // TODO: adicionar funções de input/output
+    __output_stream = output_lines;
 }
 
 std::string Processor::__copy_all_operands(int idx, int& disp){
