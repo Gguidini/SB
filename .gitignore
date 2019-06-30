@@ -9,7 +9,8 @@ assembler/tradutor
 */a.exe
 assembler/test/a.out
 assembler/test/a.exe
-
+tradutor/a.out
+tradutor/bin
 # test framework
 assembler/test/unit_test/catch_framework.hpp
 tradutor/test/unit_test/catch_framework.hpp
