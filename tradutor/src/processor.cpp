@@ -245,6 +245,7 @@ std::vector<std::string> Processor::run() {
         }
     }
     __output_stream = output_lines;
+    return output_lines;
 }
 
 std::string Processor::__copy_all_operands(int idx, int& disp){
