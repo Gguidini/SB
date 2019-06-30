@@ -270,4 +270,32 @@ std::vector<std::string> add_cinput(){
     };
     return cinput_function;
 }
+
+std::vector<std::string> add_coutput(){
+    std::vector<std::string> coutout_function = {
+        "putChar:",
+        "enter 0,0",
+        "\%define CHAR_SRC dword [ebp+8]",
+        "push ebx",
+        "push ecx",
+        "push edx",
+        "mov eax, 4",
+        "mov ebx, 1",
+        "mov ecx, CHAR_SRC",
+        "mov edx, 1",
+        "int 0x80",
+        "mov eax, 4",
+        "mov ebx, 1",
+        "mov ecx, crlf",
+        "mov edx, 2",
+        "int 0x80",
+        "pop edx",
+        "pop ecx",
+        "pop ebx",
+        "mov eax, 1",
+        "leave",
+        "ret"
+    };
+    return coutout_function;
+}
 #endif
