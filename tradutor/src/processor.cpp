@@ -77,7 +77,6 @@ std::vector<std::string> Processor::run() {
                 i++;
                 break;
             // Diretiva SPACE ou CONST
-            // TODO: Verificar se devem reservar uma double word mesmo.
             case DIR:
                 // Pega a Label que foi colocada anteriormente
                 line_with_label = output_lines.back();
@@ -111,7 +110,25 @@ std::vector<std::string> Processor::run() {
                 }
                 break;
             case OP:
+            // "ADD", "SUB", "MULT", "DIV", "JMP",
+            // "JMPN", "JMPP", "JMPZ", "COPY", "LOAD",
+            // "STORE", "INPUT", "OUTPUT", "STOP", "C_INPUT",
+            // "C_OUTPUT", "S_INPUT", "S_OUTPUT", "H_INPUT", "H_OUTPUT"
                 // TODO: adicionar a tradução de instruções
+                std::string line_to_add = "";
+                if(curr.first == "ADD" || curr.first == "SUB"){
+                    line_to_add = curr.first == "ADD" ? "add eax, " : "sub eax, ";
+                    int j = 0;
+                    while(__token_stream[i+j].second != ENDL){
+                        // Argumento, possivelmente com + IMEDIATO
+                        line_to_add += __token_stream[i+j].first;
+                        j++;
+                    }
+                    // Pula até ENDL
+                    i += j;
+                } else if(curr.first == "MULT"){
+                
+                }
                 break;
         }
     }
