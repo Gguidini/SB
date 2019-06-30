@@ -298,4 +298,37 @@ std::vector<std::string> add_coutput(){
     };
     return coutout_function;
 }
+
+std::vector<std::string> add_sinput(){
+    std::vector<std::string> sinput_function = {
+        "readStr:",
+        "enter 0,0",
+        "\%define SRC_ADDRS dword [ebp + 12]",
+        "\%define SIZE dword [ebp + 8]",
+        "push ebx",
+        "push ecx",
+        "push edx",
+        "mov eax, 3",
+        "mov ebx, 0",
+        "mov ecx, SRC_ADDRS",
+        "mov edx, SIZE",
+        "int 0x80",
+        "sub eax, eax",
+        "mov ebx, SRC_ADDRS",
+        "sinput_bytes_loop:",
+        "cmp byte [ebx + eax], 0xa",
+        "je done_readStr",
+        "cmp eax, SIZE",
+        "jge done_readStr",
+        "inc eax",
+        "jmp sinput_bytes_loop",
+        "done_readStr:",
+        "pop edx",
+        "pop ecx",
+        "pop ebx",
+        "leave",
+        "ret"
+    };
+    return sinput_function;
+}
 #endif
