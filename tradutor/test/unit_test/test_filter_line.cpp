@@ -60,6 +60,12 @@ TEST_CASE("Filter lines correctly", "[pre_processor]"){
     REQUIRE(token[0] == std::make_pair(std::string("N2"), LABEL));
     REQUIRE(token[1] == std::make_pair(std::string("CONST"), DIR));
     REQUIRE(token[2] == std::make_pair(std::string("1"), -1));
+    // 6th line - COPY
+    getline(test_file, line);
+    token = proc._filter_line(line);
+    for( Token t : token){
+        std::cout << t.first << " " << t.second << std::endl;
+    }
 }
 
 TEST_CASE("Testing filter lines for EQU"){
