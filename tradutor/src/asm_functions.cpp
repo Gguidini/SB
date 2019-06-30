@@ -331,4 +331,33 @@ std::vector<std::string> add_sinput(){
     };
     return sinput_function;
 }
+
+std::vector<std::string> add_soutput(){
+    std::vector<std::string> soutput_function = {
+        "putStr:",
+        "enter 0,0",
+        "\%define SRC_ADDRS dword [ebp + 12]",
+        "\%define SIZE dword [ebp + 8]",
+        "push ebx",
+        "push ecx",
+        "push edx",
+        "mov eax, 4",
+        "mov ebx, 1",
+        "mov ecx, SRC_ADDRS",
+        "mov edx, SIZE",
+        "int 0x80",
+        "mov eax, 4",
+        "mov ebx, 1",
+        "mov ecx, crlf",
+        "mov edx, 2",
+        "int 0x80",
+        "pop edx",
+        "pop ecx",
+        "pop ebx",
+        "mov eax, SIZE + 2",
+        "leave",
+        "ret",
+    };
+    return soutput_function;
+}
 #endif
