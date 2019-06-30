@@ -20,6 +20,8 @@ class Processor {
     std::vector<std::string> __output_stream;   // Processed tokens
     std::string __input_name;                   // Name of input file
     std::string __output_name;                  // Name of output file
+    // Method to copy operands from one assembly to the other
+    std::string __copy_all_operands(int idx, int& disp);
     
 public:
     // Constructors 
@@ -72,6 +74,10 @@ std::vector<std::string> Processor::run() {
                 } else {
                     curr_section = SEC_DATA;
                     output_lines.push_back("section .data");
+                    // Variaveis necessárias para as funções de input/output
+                    output_lines.push_back("__string dd 0,0,0");
+                    output_lines.push_back("crlf db 0xd, 0xa");
+                    output_lines.push_back("__hex_table db \"0123456789ABCDEF\"");
                 }
                 // Pula o token DATA ou TEXT
                 i++;
@@ -116,21 +122,139 @@ std::vector<std::string> Processor::run() {
             // "C_OUTPUT", "S_INPUT", "S_OUTPUT", "H_INPUT", "H_OUTPUT"
                 // TODO: adicionar a tradução de instruções
                 std::string line_to_add = "";
+                int j;
                 if(curr.first == "ADD" || curr.first == "SUB"){
-                    line_to_add = curr.first == "ADD" ? "add eax, " : "sub eax, ";
-                    int j = 0;
+                    line_to_add = curr.first == "ADD" ? "add eax, [" : "sub eax, [";
+                    line_to_add += __copy_all_operands(i, j);
+                    line_to_add += "]";
+                } else if(curr.first == "MULT"){
+                    line_to_add = "mul dword [";
+                    line_to_add += __copy_all_operands(i, j);                    
+                    line_to_add += "]";
+                } else if(curr.first == "DIV"){
+                    line_to_add += "sub edx, edx\n";
+                    line_to_add += "div dword [";
+                    line_to_add += __copy_all_operands(i, j);
+                    line_to_add += "]";
+                } else if(curr.first == "JMP"){
+                    line_to_add += "jmp ";
+                    line_to_add += __copy_all_operands(i, j);
+                } else if(curr.first == "JMPN" || curr.first == "JMPP" || curr.first == "JMPZ"){
+                    line_to_add += "cmp eax, 0\n";
+                    if(curr.first == "JMPN"){
+                        line_to_add += "jl ";
+                    } else if(curr.first == "JMPP"){
+                        line_to_add += "jg ";
+                    } else {
+                        line_to_add += "je ";
+                    }
+                    line_to_add += __copy_all_operands(i, j);
+                } else if(curr.first == "COPY"){
+                    // Copia valor do primeiro argumento para ebx
+                    line_to_add += "mov ebx, dword [";
+                    line_to_add += __token_stream[i+1].first;
+                    j = 2; // Inicio do prox argumento
+                    if(__token_stream[i+2].first == "+"){
+                        line_to_add += " + " + __token_stream[i+3].first;
+                        j = 4;
+                    }
+                    line_to_add += "]\n";
+                    // Copia o valor de ebx para o segundo argumento
+                    line_to_add += "mov dword [";
                     while(__token_stream[i+j].second != ENDL){
-                        // Argumento, possivelmente com + IMEDIATO
                         line_to_add += __token_stream[i+j].first;
                         j++;
                     }
-                    // Pula até ENDL
-                    i += j;
-                } else if(curr.first == "MULT"){
-                
+                    line_to_add += "], ebx";
+                } else if(curr.first == "LOAD"){
+                    line_to_add += "mov eax, [";
+                    line_to_add += __copy_all_operands(i, j);
+                    line_to_add += "]";
+                } else if(curr.first == "STORE"){
+                    line_to_add += "mov dowrd [";
+                    line_to_add += __copy_all_operands(i, j);
+                    line_to_add += "], eax";
+                } else if(curr.first == "INPUT"){
+                    line_to_add += "push ";
+                    line_to_add += __copy_all_operands(i,j);
+                    line_to_add += "\n";
+                    line_to_add += "call readInt\n";
+                    line_to_add += "add esp, 4";
+                } else if(curr.first == "OUTPUT"){
+                    line_to_add += "push ";
+                    line_to_add += __copy_all_operands(i,j);
+                    line_to_add += "\n";
+                    line_to_add += "call putInt\n";
+                    line_to_add += "add esp, 4";
+                } else if(curr.first == "C_INPUT" || curr.first == "C_OUTPUT"){
+                    line_to_add += "push ";
+                    line_to_add += __copy_all_operands(i,j);
+                    line_to_add += "\n";
+                    if(curr.first == "H_INPUT"){
+                        line_to_add += "call readChar\n";
+                    } else {
+                        line_to_add += "call putChar\n";
+                    }
+                    line_to_add += "add esp, 4";
+                } else if(curr.first == "H_INPUT" || curr.first == "H_OUTPUT"){
+                    line_to_add += "push ";
+                    line_to_add += __copy_all_operands(i,j);
+                    line_to_add += "\n";
+                    if(curr.first == "H_INPUT"){
+                        line_to_add += "call readHex\n";
+                    } else {
+                        line_to_add += "call putHex\n";
+                    }
+                    line_to_add += "add esp, 4";
+                } else if(curr.first == "S_INPUT" || curr.first == "S_OUTPUT"){
+                    // Push no primeiro argumento
+                    line_to_add += "push ";
+                    line_to_add += __token_stream[i+1].first;
+                    j = 2; // Inicio do prox argumento
+                    if(__token_stream[i+2].first == "+"){
+                        line_to_add += " + " + __token_stream[i+3].first;
+                        j = 4;
+                    }
+                    line_to_add += "\n";
+                    // Push do segundo argumento
+                    line_to_add += "push ";
+                    while(__token_stream[i+j].second != ENDL){
+                        line_to_add += __token_stream[i+j].first;
+                        j++;
+                    }
+                    line_to_add += "\n";
+                    // Chama a função
+                    if(curr.first == "S_INPUT"){
+                        line_to_add += "call readStr\n";
+                    } else {
+                        line_to_add += "call putStr\n";
+                    }
+                    line_to_add += "add esp, 8";
+                } else if(curr.first == "STOP"){
+                    line_to_add += "mov eax, 1\n";
+                    line_to_add += "mov ebx, 0\n";
+                    line_to_add += "int 0x80";
                 }
+
+                output_lines.push_back(line_to_add);
+                // Pula até ENDL
+                    i += j;
                 break;
         }
     }
+
+    // TODO: adicionar funções de input/output
 }
+
+std::string Processor::__copy_all_operands(int idx, int& disp){
+    disp = 1;
+    std::string operands = "";
+    while(__token_stream[idx+disp].second != ENDL){
+        // Argumento, possivelmente com + IMEDIATO
+        operands += __token_stream[idx+disp].first;
+        disp++;
+    }
+    return operands;
+}
+
 #endif
