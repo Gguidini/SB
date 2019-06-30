@@ -59,7 +59,7 @@ std::vector<std::string> add_input() {
         "pop ebx",
         "pop edx",
         "leave",
-        "ret",
+        "ret"
     };
     return input_function;
 }
@@ -128,7 +128,7 @@ std::vector<std::string> add_output(){
         "pop ecx",
         "pop esi",
         "leave",
-        "ret",
+        "ret"
     };
     return output_function;
 }
@@ -181,7 +181,7 @@ std::vector<std::string> add_hinput(){
         "pop ebx",
         "pop edx",
         "leave",
-        "ret",
+        "ret"
     };
     return hinput_function;
 }
@@ -243,8 +243,31 @@ std::vector<std::string> add_houtput(){
         "pop ecx",
         "pop esi",
         "leave",
-        "ret",
+        "ret"
     };
     return houtput_function;
+}
+
+std::vector<std::string> add_cinput(){
+    std::vector<std::string> cinput_function = {
+        "readChar:",
+        "enter 0,0",
+        "\%define CHAR_SRC dword [ebp+8]",
+        "push ebx",
+        "push ecx",
+        "push edx",
+        "mov eax, 3",
+        "mov ebx, 0",
+        "mov ecx, CHAR_SRC",
+        "mov edx, 1",
+        "int 0x80",
+        "pop edx",
+        "pop ecx",
+        "pop ebx",
+        "mov eax, 1",
+        "leave",
+        "ret"
+    };
+    return cinput_function;
 }
 #endif
