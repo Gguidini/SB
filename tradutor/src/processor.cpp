@@ -42,6 +42,7 @@ Processor::Processor(){
 Processor::Processor(std::string input, std::vector<Token> tokens) : Processor() {
     __input_name = input;
     __output_name = input.substr(0, input.size() - 4) + ".s";
+    __token_stream = tokens;
 }
 
 // generate_output copia as linhas de código geradas pelo Processor
@@ -51,7 +52,41 @@ std::string Processor::generate_output(){
     for(std::string str : __output_stream){
         out << str << std::endl;
     }
-    // TODO: adicionar funções de IO
+    // Adicionar funções de IO
+    out << std::endl << "section .text" << std::endl;
+    out << std::endl;
+
+    for(std::string str : add_input()){
+        out << str << std::endl;
+    }
+    out << std::endl;
+    for(std::string str : add_output()){
+        out << str << std::endl;
+    }
+    out << std::endl;
+    for(std::string str : add_hinput()){
+        out << str << std::endl;
+    }
+    out << std::endl;
+    for(std::string str : add_houtput()){
+        out << str << std::endl;
+    }
+    out << std::endl;
+    for(std::string str : add_cinput()){
+        out << str << std::endl;
+    }
+    out << std::endl;
+    for(std::string str : add_coutput()){
+        out << str << std::endl;
+    }
+    out << std::endl;
+    for(std::string str : add_sinput()){
+        out << str << std::endl;
+    }
+    out << std::endl;
+    for(std::string str : add_soutput()){
+        out << str << std::endl;
+    }
     out.close();
     return __output_name;
 }
@@ -111,7 +146,7 @@ std::vector<std::string> Processor::run() {
                 output_lines.push_back(line_with_label);
                 break;
             case LABEL:
-                if(curr_section = SEC_DATA){
+                if(curr_section == SEC_DATA){
                     output_lines.push_back(curr.first);
                 } else {
                     output_lines.push_back(curr.first + ":");
@@ -122,7 +157,6 @@ std::vector<std::string> Processor::run() {
             // "JMPN", "JMPP", "JMPZ", "COPY", "LOAD",
             // "STORE", "INPUT", "OUTPUT", "STOP", "C_INPUT",
             // "C_OUTPUT", "S_INPUT", "S_OUTPUT", "H_INPUT", "H_OUTPUT"
-                // TODO: adicionar a tradução de instruções
                 std::string line_to_add = "";
                 int j;
                 if(curr.first == "ADD" || curr.first == "SUB"){
@@ -173,7 +207,7 @@ std::vector<std::string> Processor::run() {
                     line_to_add += __copy_all_operands(i, j);
                     line_to_add += "]";
                 } else if(curr.first == "STORE"){
-                    line_to_add += "mov dowrd [";
+                    line_to_add += "mov dword [";
                     line_to_add += __copy_all_operands(i, j);
                     line_to_add += "], eax";
                 } else if(curr.first == "INPUT"){
@@ -233,6 +267,7 @@ std::vector<std::string> Processor::run() {
                     }
                     line_to_add += "add esp, 8";
                 } else if(curr.first == "STOP"){
+                    j = 0;
                     line_to_add += "mov eax, 1\n";
                     line_to_add += "mov ebx, 0\n";
                     line_to_add += "int 0x80";
