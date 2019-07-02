@@ -58,7 +58,7 @@ Processor::Processor(std::string input_name){
 std::pair < char* , char* > Processor::Processor run(){
     
     fstream file(__input_name);
-    std::vector<std::pair < std::vector<char>, std::vector<char> > > processed;
+    std::pair < char* , char* > processed;
 
     if(!file){
         cout << "Invalid file name!" << endl;
