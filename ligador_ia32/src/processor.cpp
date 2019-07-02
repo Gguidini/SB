@@ -9,8 +9,6 @@
 // Local dependencies
 #include "../lib/opcodes.h"
 #include "../lib/utils.h"
-#include "errors.cpp"
-#include "symbols.cpp"
 
 // defines token symbols
 #define LABEL 0
@@ -30,7 +28,12 @@ class Processor {
     // Private attributes
     // General information
     std::string __input_name;
+    std::ifstream __file_pointer;       // Input file pointer
+    std::vector<std::string> __lines;
     bool __done;
+
+    std::vector<Token> _filter_line(std::string&line, int lst_line = 0);    
+    void convert_token_to_bytes(char* binary_code, std::vector<Token> &tokens);
     
 public:
     // Constructors 
@@ -38,6 +41,7 @@ public:
     Processor(std::string input);
     // Process
     std::pair < char* , char* > run();
+
 
 };
 
@@ -51,24 +55,56 @@ Processor::Processor(){
 // Processor com arquivo de referência.
 // Arquivo de referência já é aberto.
 Processor::Processor(std::string input_name){
-    __input_name = input_name;
     __done = false;
+    __input_name = input_name;
+    // Verifica se extensão é .txt
+    if(__input_name.substr(__input_name.size() - 2, 2) != ".s"){
+        throw "Arquivo " + __input_name + " não possui extensão correta (.s)";
+    } 
+    __file_pointer.open(input_name);
+    // Verifica que conseguiu abrir o arquivo
+    if(!__file_pointer.is_open()){
+        throw "File " + __input_name + " not Found";
+    }
 }
 
-std::pair < char* , char* > Processor::Processor run(){
+std::pair < char* , char* > Processor::run(){
     
-    fstream file(__input_name);
-    std::pair < char* , char* > processed;
+    std::string line;
+    std::pair < char* , char* > binary_code;
+    int curr_line = 0;
 
-    if(!file){
-        cout << "Invalid file name!" << endl;
-        return processed;
+    while(getline(__file_pointer, line)){
+        if(line == "section .data") break;
+
+        std::vector<Token> tokens_to_add = _filter_line(line, curr_line);
+        convert_token_to_bytes(binary_code.first, tokens_to_add);
     }
 
-    // TODO : Finish this function
+    // TODO: Add our functions to binary code
+    
+    while(getline(__file_pointer, line)){
+
+        std::vector<Token> tokens_to_add = _filter_line(line, curr_line);
+        convert_token_to_bytes(binary_code.second, tokens_to_add);
+    }
+
+    return binary_code;
 
 }
 
+std::vector<Token> Processor::_filter_line(std::string &line, int lst_line){
+
+    // TODO implement this function
+
+    return std::vector<Token>();
+}
+
+void Processor::convert_token_to_bytes(char* binary_code, std::vector<Token> &tokens){
+
+    // TODO implement this function
+
+}
 
 
 #endif
