@@ -1,4 +1,4 @@
-#include <../lib/elfio/elfio.hpp>
+#include <elfio/elfio.hpp>
 
 class Linker{
 
@@ -10,11 +10,11 @@ class Linker{
 
     // Constructors 
     Linker();
-    Linker(std::pair < char* , char* > binary_code);
+    Linker(std::pair < char* , char* > binary_code, std::string output_name);
 
     // Run
     bool run();
-}
+};
 
 
 // Nada é inicializado como válido.
@@ -42,7 +42,7 @@ bool Linker::run(){
     writer.set_machine( EM_386 );
 
     // Create code section
-    section* text_sec = writer.sections.add( ".text" );
+    ELFIO::section* text_sec = writer.sections.add( ".text" );
     text_sec->set_type( SHT_PROGBITS );
     text_sec->set_flags( SHF_ALLOC | SHF_EXECINSTR );
     text_sec->set_addr_align( 0x10 );
@@ -51,7 +51,7 @@ bool Linker::run(){
     text_sec->set_data( __binary_code.first , sizeof( __binary_code.first  ) );
 
     // Create a loadable segment
-    segment* text_seg = writer.segments.add();
+    ELFIO::segment* text_seg = writer.segments.add();
     text_seg->set_type( PT_LOAD );
     text_seg->set_virtual_address( 0x08048000 );    // OS dependent
     text_seg->set_physical_address( 0x08048000 );   // OS dependent
@@ -62,7 +62,7 @@ bool Linker::run(){
     text_seg->add_section_index( text_sec->get_index(), text_sec->get_addr_align() );
 
     // Create data section*
-    section* data_sec = writer.sections.add( ".data" );
+    ELFIO::section* data_sec = writer.sections.add( ".data" );
     data_sec->set_type( SHT_PROGBITS );
     data_sec->set_flags( SHF_ALLOC | SHF_WRITE );
     data_sec->set_addr_align( 0x4 );
@@ -70,7 +70,7 @@ bool Linker::run(){
     data_sec->set_data( __binary_code.second, sizeof( __binary_code.second ) );
 
     // Create a read/write segment
-    segment* data_seg = writer.segments.add();
+    ELFIO::segment* data_seg = writer.segments.add();
     data_seg->set_type( PT_LOAD );
     data_seg->set_virtual_address( 0x08048020 );    // OS dependent
     data_seg->set_physical_address( 0x08048020 );   // OS dependent
@@ -80,10 +80,10 @@ bool Linker::run(){
     // Add code section into program segment
     data_seg->add_section_index( data_sec->get_index(), data_sec->get_addr_align() );
 
-    section* note_sec = writer.sections.add( ".note" );
+    ELFIO::section* note_sec = writer.sections.add( ".note" );
     note_sec->set_type( SHT_NOTE );
     note_sec->set_addr_align( 1 );
-    note_section_accessor note_writer( writer, note_sec );
+    ELFIO::note_section_accessor note_writer( writer, note_sec );
     note_writer.add_note( 0x01, "Created by ELFIO", 0, 0 );
     char descr[6] = {0x31, 0x32, 0x33, 0x34, 0x35, 0x36};
     note_writer.add_note( 0x01, "Never easier!", descr, sizeof( descr ) );

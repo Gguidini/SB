@@ -32,9 +32,9 @@ void test_bin(){
     FILE* fd;
     fd = fopen("bin_code.txt", "r");
     std::vector<char> text;
-    char ch;
+    unsigned char ch;
     // Copia todo o código em binario
-    while( fscanf(fd, "%x", &ch) ){
+    while( fscanf(fd, " %x", &ch) != EOF ){
         text.push_back(ch);
     }
     fclose(fd);
@@ -56,6 +56,7 @@ void test_bin(){
 }
 
 int main() {
+
     test_hello_world();
     test_bin();
 }
