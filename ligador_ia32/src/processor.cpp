@@ -33,14 +33,14 @@ class Processor {
     bool __done;
 
     std::vector<Token> _filter_line(std::string&line, int lst_line = 0);    
-    void convert_token_to_bytes(char* binary_code, std::vector<Token> &tokens);
+    void convert_token_to_bytes(std::vector<char> binary_code, std::vector<Token> &tokens);
     
 public:
     // Constructors 
     Processor();
     Processor(std::string input);
     // Process
-    std::pair < char* , char* > run();
+    std::pair<std::vector<char>, std::vector<char>> run();
 
 
 };
@@ -68,10 +68,10 @@ Processor::Processor(std::string input_name){
     }
 }
 
-std::pair < char* , char* > Processor::run(){
+std::pair<std::vector<char>, std::vector<char>> Processor::run(){
     
     std::string line;
-    std::pair < char* , char* > binary_code;
+    std::pair<std::vector<char>, std::vector<char>> binary_code;
     int curr_line = 0;
 
     while(getline(__file_pointer, line)){
@@ -100,7 +100,7 @@ std::vector<Token> Processor::_filter_line(std::string &line, int lst_line){
     return std::vector<Token>();
 }
 
-void Processor::convert_token_to_bytes(char* binary_code, std::vector<Token> &tokens){
+void Processor::convert_token_to_bytes(std::vector<char> binary_code, std::vector<Token> &tokens){
 
     // TODO implement this function
 
