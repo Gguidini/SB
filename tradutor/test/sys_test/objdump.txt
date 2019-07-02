@@ -1,0 +1,357 @@
+
+a.out:     file format elf32-i386
+
+
+Disassembly of section .text:
+
+08049000 <_start>:
+ 8049000:	68 22 a0 04 08       	push   $0x804a022
+ 8049005:	e8 5f 00 00 00       	call   8049069 <readInt>
+ 804900a:	83 c4 04             	add    $0x4,%esp
+ 804900d:	a1 22 a0 04 08       	mov    0x804a022,%eax
+
+08049012 <L1>:
+ 8049012:	29 d2                	sub    %edx,%edx
+ 8049014:	f7 35 1e a0 04 08    	divl   0x804a01e
+ 804901a:	a3 26 a0 04 08       	mov    %eax,0x804a026
+ 804901f:	f7 25 1e a0 04 08    	mull   0x804a01e
+ 8049025:	a3 2a a0 04 08       	mov    %eax,0x804a02a
+ 804902a:	a1 22 a0 04 08       	mov    0x804a022,%eax
+ 804902f:	2b 05 2a a0 04 08    	sub    0x804a02a,%eax
+ 8049035:	a3 2a a0 04 08       	mov    %eax,0x804a02a
+ 804903a:	68 2a a0 04 08       	push   $0x804a02a
+ 804903f:	e8 9c 00 00 00       	call   80490e0 <putInt>
+ 8049044:	83 c4 04             	add    $0x4,%esp
+ 8049047:	8b 1d 26 a0 04 08    	mov    0x804a026,%ebx
+ 804904d:	89 1d 22 a0 04 08    	mov    %ebx,0x804a022
+ 8049053:	a1 22 a0 04 08       	mov    0x804a022,%eax
+ 8049058:	83 f8 00             	cmp    $0x0,%eax
+ 804905b:	7f b5                	jg     8049012 <L1>
+ 804905d:	b8 01 00 00 00       	mov    $0x1,%eax
+ 8049062:	bb 00 00 00 00       	mov    $0x0,%ebx
+ 8049067:	cd 80                	int    $0x80
+
+08049069 <readInt>:
+ 8049069:	c8 05 00 00          	enter  $0x5,$0x0
+ 804906d:	c7 45 fc 00 00 00 00 	movl   $0x0,-0x4(%ebp)
+ 8049074:	c6 45 f8 00          	movb   $0x0,-0x8(%ebp)
+ 8049078:	52                   	push   %edx
+ 8049079:	53                   	push   %ebx
+ 804907a:	51                   	push   %ecx
+ 804907b:	b8 03 00 00 00       	mov    $0x3,%eax
+ 8049080:	bb 00 00 00 00       	mov    $0x0,%ebx
+ 8049085:	b9 00 a0 04 08       	mov    $0x804a000,%ecx
+ 804908a:	ba 0c 00 00 00       	mov    $0xc,%edx
+ 804908f:	cd 80                	int    $0x80
+ 8049091:	80 3d 00 a0 04 08 2d 	cmpb   $0x2d,0x804a000
+ 8049098:	75 0b                	jne    80490a5 <input_positive_integer>
+ 804909a:	b9 01 00 00 00       	mov    $0x1,%ecx
+ 804909f:	c6 45 f8 01          	movb   $0x1,-0x8(%ebp)
+ 80490a3:	eb 02                	jmp    80490a7 <input_initialize_variables>
+
+080490a5 <input_positive_integer>:
+ 80490a5:	29 c9                	sub    %ecx,%ecx
+
+080490a7 <input_initialize_variables>:
+ 80490a7:	29 c0                	sub    %eax,%eax
+ 80490a9:	29 d2                	sub    %edx,%edx
+
+080490ab <input_while>:
+ 80490ab:	8a 91 00 a0 04 08    	mov    0x804a000(%ecx),%dl
+ 80490b1:	83 fa 0a             	cmp    $0xa,%edx
+ 80490b4:	74 16                	je     80490cc <input_done>
+ 80490b6:	83 fa 0d             	cmp    $0xd,%edx
+ 80490b9:	74 11                	je     80490cc <input_done>
+ 80490bb:	89 c3                	mov    %eax,%ebx
+ 80490bd:	c1 e0 03             	shl    $0x3,%eax
+ 80490c0:	01 d8                	add    %ebx,%eax
+ 80490c2:	01 d8                	add    %ebx,%eax
+ 80490c4:	80 ea 30             	sub    $0x30,%dl
+ 80490c7:	01 d0                	add    %edx,%eax
+ 80490c9:	41                   	inc    %ecx
+ 80490ca:	eb df                	jmp    80490ab <input_while>
+
+080490cc <input_done>:
+ 80490cc:	80 7d f8 00          	cmpb   $0x0,-0x8(%ebp)
+ 80490d0:	74 02                	je     80490d4 <input_save>
+ 80490d2:	f7 d8                	neg    %eax
+
+080490d4 <input_save>:
+ 80490d4:	8b 55 08             	mov    0x8(%ebp),%edx
+ 80490d7:	89 02                	mov    %eax,(%edx)
+ 80490d9:	89 c8                	mov    %ecx,%eax
+ 80490db:	59                   	pop    %ecx
+ 80490dc:	5b                   	pop    %ebx
+ 80490dd:	5a                   	pop    %edx
+ 80490de:	c9                   	leave  
+ 80490df:	c3                   	ret    
+
+080490e0 <putInt>:
+ 80490e0:	c8 00 00 00          	enter  $0x0,$0x0
+ 80490e4:	56                   	push   %esi
+ 80490e5:	51                   	push   %ecx
+ 80490e6:	52                   	push   %edx
+ 80490e7:	53                   	push   %ebx
+ 80490e8:	8b 75 08             	mov    0x8(%ebp),%esi
+ 80490eb:	8b 06                	mov    (%esi),%eax
+ 80490ed:	29 c9                	sub    %ecx,%ecx
+ 80490ef:	bb 0a 00 00 00       	mov    $0xa,%ebx
+ 80490f4:	c6 05 00 a0 04 08 00 	movb   $0x0,0x804a000
+ 80490fb:	83 f8 00             	cmp    $0x0,%eax
+ 80490fe:	7f 13                	jg     8049113 <output_is_positive>
+ 8049100:	74 0c                	je     804910e <output_is_zero>
+ 8049102:	c6 05 00 a0 04 08 2d 	movb   $0x2d,0x804a000
+ 8049109:	41                   	inc    %ecx
+ 804910a:	f7 d8                	neg    %eax
+ 804910c:	eb 05                	jmp    8049113 <output_is_positive>
+
+0804910e <output_is_zero>:
+ 804910e:	6a 30                	push   $0x30
+ 8049110:	41                   	inc    %ecx
+ 8049111:	eb 11                	jmp    8049124 <output_print>
+
+08049113 <output_is_positive>:
+ 8049113:	83 f8 00             	cmp    $0x0,%eax
+ 8049116:	74 0c                	je     8049124 <output_print>
+ 8049118:	29 d2                	sub    %edx,%edx
+ 804911a:	f7 f3                	div    %ebx
+ 804911c:	83 c2 30             	add    $0x30,%edx
+ 804911f:	66 52                	push   %dx
+ 8049121:	41                   	inc    %ecx
+ 8049122:	eb ef                	jmp    8049113 <output_is_positive>
+
+08049124 <output_print>:
+ 8049124:	29 db                	sub    %ebx,%ebx
+ 8049126:	80 3d 00 a0 04 08 00 	cmpb   $0x0,0x804a000
+ 804912d:	74 01                	je     8049130 <output_print_loop>
+ 804912f:	43                   	inc    %ebx
+
+08049130 <output_print_loop>:
+ 8049130:	39 cb                	cmp    %ecx,%ebx
+ 8049132:	74 0b                	je     804913f <output_ok_to_print>
+ 8049134:	66 5a                	pop    %dx
+ 8049136:	88 93 00 a0 04 08    	mov    %dl,0x804a000(%ebx)
+ 804913c:	43                   	inc    %ebx
+ 804913d:	eb f1                	jmp    8049130 <output_print_loop>
+
+0804913f <output_ok_to_print>:
+ 804913f:	51                   	push   %ecx
+ 8049140:	b8 04 00 00 00       	mov    $0x4,%eax
+ 8049145:	bb 01 00 00 00       	mov    $0x1,%ebx
+ 804914a:	89 ca                	mov    %ecx,%edx
+ 804914c:	b9 00 a0 04 08       	mov    $0x804a000,%ecx
+ 8049151:	cd 80                	int    $0x80
+ 8049153:	b8 04 00 00 00       	mov    $0x4,%eax
+ 8049158:	bb 01 00 00 00       	mov    $0x1,%ebx
+ 804915d:	b9 0c a0 04 08       	mov    $0x804a00c,%ecx
+ 8049162:	ba 02 00 00 00       	mov    $0x2,%edx
+ 8049167:	cd 80                	int    $0x80
+ 8049169:	58                   	pop    %eax
+ 804916a:	5b                   	pop    %ebx
+ 804916b:	5a                   	pop    %edx
+ 804916c:	59                   	pop    %ecx
+ 804916d:	5e                   	pop    %esi
+ 804916e:	c9                   	leave  
+ 804916f:	c3                   	ret    
+
+08049170 <readHex>:
+ 8049170:	c8 00 00 00          	enter  $0x0,$0x0
+ 8049174:	53                   	push   %ebx
+ 8049175:	51                   	push   %ecx
+ 8049176:	52                   	push   %edx
+ 8049177:	b8 03 00 00 00       	mov    $0x3,%eax
+ 804917c:	bb 00 00 00 00       	mov    $0x0,%ebx
+ 8049181:	b9 00 a0 04 08       	mov    $0x804a000,%ecx
+ 8049186:	ba 08 00 00 00       	mov    $0x8,%edx
+ 804918b:	cd 80                	int    $0x80
+ 804918d:	29 c0                	sub    %eax,%eax
+ 804918f:	29 c9                	sub    %ecx,%ecx
+ 8049191:	29 d2                	sub    %edx,%edx
+
+08049193 <decode_hex>:
+ 8049193:	8a 91 00 a0 04 08    	mov    0x804a000(%ecx),%dl
+ 8049199:	83 fa 0a             	cmp    $0xa,%edx
+ 804919c:	74 2a                	je     80491c8 <hinput_done>
+ 804919e:	83 f9 08             	cmp    $0x8,%ecx
+ 80491a1:	74 25                	je     80491c8 <hinput_done>
+ 80491a3:	83 fa 39             	cmp    $0x39,%edx
+ 80491a6:	76 15                	jbe    80491bd <is_hex_digit>
+ 80491a8:	83 fa 5a             	cmp    $0x5a,%edx
+ 80491ab:	76 08                	jbe    80491b5 <is_hex_uppercase>
+ 80491ad:	80 ea 61             	sub    $0x61,%dl
+ 80491b0:	80 c2 0a             	add    $0xa,%dl
+ 80491b3:	eb 0b                	jmp    80491c0 <hinput_loop_prep>
+
+080491b5 <is_hex_uppercase>:
+ 80491b5:	80 ea 41             	sub    $0x41,%dl
+ 80491b8:	80 c2 0a             	add    $0xa,%dl
+ 80491bb:	eb 03                	jmp    80491c0 <hinput_loop_prep>
+
+080491bd <is_hex_digit>:
+ 80491bd:	80 ea 30             	sub    $0x30,%dl
+
+080491c0 <hinput_loop_prep>:
+ 80491c0:	c1 e0 04             	shl    $0x4,%eax
+ 80491c3:	01 d0                	add    %edx,%eax
+ 80491c5:	41                   	inc    %ecx
+ 80491c6:	eb cb                	jmp    8049193 <decode_hex>
+
+080491c8 <hinput_done>:
+ 80491c8:	8b 55 08             	mov    0x8(%ebp),%edx
+ 80491cb:	89 02                	mov    %eax,(%edx)
+ 80491cd:	89 c8                	mov    %ecx,%eax
+ 80491cf:	59                   	pop    %ecx
+ 80491d0:	5b                   	pop    %ebx
+ 80491d1:	5a                   	pop    %edx
+ 80491d2:	c9                   	leave  
+ 80491d3:	c3                   	ret    
+
+080491d4 <putHex>:
+ 80491d4:	c8 00 00 00          	enter  $0x0,$0x0
+ 80491d8:	56                   	push   %esi
+ 80491d9:	51                   	push   %ecx
+ 80491da:	52                   	push   %edx
+ 80491db:	53                   	push   %ebx
+ 80491dc:	8b 75 08             	mov    0x8(%ebp),%esi
+ 80491df:	8b 16                	mov    (%esi),%edx
+ 80491e1:	29 c9                	sub    %ecx,%ecx
+ 80491e3:	bb 10 00 00 00       	mov    $0x10,%ebx
+ 80491e8:	83 fa 00             	cmp    $0x0,%edx
+ 80491eb:	75 05                	jne    80491f2 <houtput_not_zero>
+ 80491ed:	6a 30                	push   $0x30
+ 80491ef:	41                   	inc    %ecx
+ 80491f0:	eb 19                	jmp    804920b <houtput_print>
+
+080491f2 <houtput_not_zero>:
+ 80491f2:	83 fa 00             	cmp    $0x0,%edx
+ 80491f5:	74 14                	je     804920b <houtput_print>
+ 80491f7:	29 c0                	sub    %eax,%eax
+ 80491f9:	88 d0                	mov    %dl,%al
+ 80491fb:	24 0f                	and    $0xf,%al
+ 80491fd:	bb 0e a0 04 08       	mov    $0x804a00e,%ebx
+ 8049202:	d7                   	xlat   %ds:(%ebx)
+ 8049203:	66 50                	push   %ax
+ 8049205:	41                   	inc    %ecx
+ 8049206:	c1 ea 04             	shr    $0x4,%edx
+ 8049209:	eb e7                	jmp    80491f2 <houtput_not_zero>
+
+0804920b <houtput_print>:
+ 804920b:	29 db                	sub    %ebx,%ebx
+
+0804920d <houtput_print_loop>:
+ 804920d:	39 cb                	cmp    %ecx,%ebx
+ 804920f:	74 0b                	je     804921c <houtput_ok_to_print>
+ 8049211:	66 5a                	pop    %dx
+ 8049213:	88 93 00 a0 04 08    	mov    %dl,0x804a000(%ebx)
+ 8049219:	43                   	inc    %ebx
+ 804921a:	eb f1                	jmp    804920d <houtput_print_loop>
+
+0804921c <houtput_ok_to_print>:
+ 804921c:	51                   	push   %ecx
+ 804921d:	b8 04 00 00 00       	mov    $0x4,%eax
+ 8049222:	bb 01 00 00 00       	mov    $0x1,%ebx
+ 8049227:	89 ca                	mov    %ecx,%edx
+ 8049229:	b9 00 a0 04 08       	mov    $0x804a000,%ecx
+ 804922e:	cd 80                	int    $0x80
+ 8049230:	b8 04 00 00 00       	mov    $0x4,%eax
+ 8049235:	bb 01 00 00 00       	mov    $0x1,%ebx
+ 804923a:	b9 0c a0 04 08       	mov    $0x804a00c,%ecx
+ 804923f:	ba 02 00 00 00       	mov    $0x2,%edx
+ 8049244:	cd 80                	int    $0x80
+ 8049246:	58                   	pop    %eax
+ 8049247:	5b                   	pop    %ebx
+ 8049248:	5a                   	pop    %edx
+ 8049249:	59                   	pop    %ecx
+ 804924a:	5e                   	pop    %esi
+ 804924b:	c9                   	leave  
+ 804924c:	c3                   	ret    
+
+0804924d <readChar>:
+ 804924d:	c8 00 00 00          	enter  $0x0,$0x0
+ 8049251:	53                   	push   %ebx
+ 8049252:	51                   	push   %ecx
+ 8049253:	52                   	push   %edx
+ 8049254:	b8 03 00 00 00       	mov    $0x3,%eax
+ 8049259:	bb 00 00 00 00       	mov    $0x0,%ebx
+ 804925e:	8b 4d 08             	mov    0x8(%ebp),%ecx
+ 8049261:	ba 01 00 00 00       	mov    $0x1,%edx
+ 8049266:	cd 80                	int    $0x80
+ 8049268:	5a                   	pop    %edx
+ 8049269:	59                   	pop    %ecx
+ 804926a:	5b                   	pop    %ebx
+ 804926b:	b8 01 00 00 00       	mov    $0x1,%eax
+ 8049270:	c9                   	leave  
+ 8049271:	c3                   	ret    
+
+08049272 <putChar>:
+ 8049272:	c8 00 00 00          	enter  $0x0,$0x0
+ 8049276:	53                   	push   %ebx
+ 8049277:	51                   	push   %ecx
+ 8049278:	52                   	push   %edx
+ 8049279:	b8 04 00 00 00       	mov    $0x4,%eax
+ 804927e:	bb 01 00 00 00       	mov    $0x1,%ebx
+ 8049283:	8b 4d 08             	mov    0x8(%ebp),%ecx
+ 8049286:	ba 01 00 00 00       	mov    $0x1,%edx
+ 804928b:	cd 80                	int    $0x80
+ 804928d:	b8 04 00 00 00       	mov    $0x4,%eax
+ 8049292:	bb 01 00 00 00       	mov    $0x1,%ebx
+ 8049297:	b9 0c a0 04 08       	mov    $0x804a00c,%ecx
+ 804929c:	ba 02 00 00 00       	mov    $0x2,%edx
+ 80492a1:	cd 80                	int    $0x80
+ 80492a3:	5a                   	pop    %edx
+ 80492a4:	59                   	pop    %ecx
+ 80492a5:	5b                   	pop    %ebx
+ 80492a6:	b8 01 00 00 00       	mov    $0x1,%eax
+ 80492ab:	c9                   	leave  
+ 80492ac:	c3                   	ret    
+
+080492ad <readStr>:
+ 80492ad:	c8 00 00 00          	enter  $0x0,$0x0
+ 80492b1:	53                   	push   %ebx
+ 80492b2:	51                   	push   %ecx
+ 80492b3:	52                   	push   %edx
+ 80492b4:	b8 03 00 00 00       	mov    $0x3,%eax
+ 80492b9:	bb 00 00 00 00       	mov    $0x0,%ebx
+ 80492be:	8b 4d 0c             	mov    0xc(%ebp),%ecx
+ 80492c1:	8b 55 08             	mov    0x8(%ebp),%edx
+ 80492c4:	cd 80                	int    $0x80
+ 80492c6:	29 c0                	sub    %eax,%eax
+ 80492c8:	8b 5d 0c             	mov    0xc(%ebp),%ebx
+
+080492cb <sinput_bytes_loop>:
+ 80492cb:	80 3c 03 0a          	cmpb   $0xa,(%ebx,%eax,1)
+ 80492cf:	74 08                	je     80492d9 <done_readStr>
+ 80492d1:	3b 45 08             	cmp    0x8(%ebp),%eax
+ 80492d4:	7d 03                	jge    80492d9 <done_readStr>
+ 80492d6:	40                   	inc    %eax
+ 80492d7:	eb f2                	jmp    80492cb <sinput_bytes_loop>
+
+080492d9 <done_readStr>:
+ 80492d9:	5a                   	pop    %edx
+ 80492da:	59                   	pop    %ecx
+ 80492db:	5b                   	pop    %ebx
+ 80492dc:	c9                   	leave  
+ 80492dd:	c3                   	ret    
+
+080492de <putStr>:
+ 80492de:	c8 00 00 00          	enter  $0x0,$0x0
+ 80492e2:	53                   	push   %ebx
+ 80492e3:	51                   	push   %ecx
+ 80492e4:	52                   	push   %edx
+ 80492e5:	b8 04 00 00 00       	mov    $0x4,%eax
+ 80492ea:	bb 01 00 00 00       	mov    $0x1,%ebx
+ 80492ef:	8b 4d 0c             	mov    0xc(%ebp),%ecx
+ 80492f2:	8b 55 08             	mov    0x8(%ebp),%edx
+ 80492f5:	cd 80                	int    $0x80
+ 80492f7:	b8 04 00 00 00       	mov    $0x4,%eax
+ 80492fc:	bb 01 00 00 00       	mov    $0x1,%ebx
+ 8049301:	b9 0c a0 04 08       	mov    $0x804a00c,%ecx
+ 8049306:	ba 02 00 00 00       	mov    $0x2,%edx
+ 804930b:	cd 80                	int    $0x80
+ 804930d:	5a                   	pop    %edx
+ 804930e:	59                   	pop    %ecx
+ 804930f:	5b                   	pop    %ebx
+ 8049310:	8b 45 08             	mov    0x8(%ebp),%eax
+ 8049313:	83 c0 02             	add    $0x2,%eax
+ 8049316:	c9                   	leave  
+ 8049317:	c3                   	ret    
