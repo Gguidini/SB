@@ -32,15 +32,22 @@ void test_bin(){
     // (Created with tradutor from bin.asm)
     FILE* fd;
     fd = fopen("bin_code.txt", "r");
+    if(fd == NULL){
+        printf("An error ocurred opening the file\n");
+        exit(0);
+    }
     std::vector<char> text;
-    unsigned char ch;
+    char ch;
     // Copia todo o código em binario
-    while( fscanf(fd, " %x", &ch) != EOF ){
+    while( fscanf(fd, "%x", &ch) != EOF ){
         text.push_back(ch);
     }
     fclose(fd);
+    printf("Finished reading text portion\n");
     std::vector<char> data = {
-        '\x00', '\x00', '\x00',
+        '\x00', '\x00', '\x00', '\x00',
+        '\x00', '\x00', '\x00', '\x00',
+        '\x00', '\x00', '\x00', '\x00',
         '\x0d', '\x0a',
         '\x30', '\x31', '\x32', '\x33', '\x34', '\x35', '\x36', '\x37', '\x38', '\x39',
         '\x41', '\x42', '\x43', '\x44', '\x45', '\x46',
@@ -49,14 +56,16 @@ void test_bin(){
         '\x00', '\x00', '\x00', '\x00',
         '\x00', '\x00', '\x00', '\x00'
     };
+    printf("Finished creating data portion\n");
     std::pair<std::vector<char>, std::vector<char>> binary = std::make_pair(text, data);
-    Linker linker(binary, std::string("bin"));
+    Linker linker(binary, std::string("int_to_bin"));
     bool ok = linker.run();
     assert(ok);
 }
 
 int main() {
-
     test_hello_world();
+    printf("Hello World created ok\n");
     test_bin();
+    printf("Int_to_bin created ok\n");
 }
