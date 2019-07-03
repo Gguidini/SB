@@ -73,29 +73,30 @@ Processor::Processor(std::string input_name){
 
 std::pair<std::vector<char>, std::vector<char>> Processor::run(){
     
+    // Código correto
     // Primeiramente calcula o valor dos símbolos
-    __count_symbols_addrs();
+    // __count_symbols_addrs();
     // Faz a tradução do código
-    std::string line;
-    std::pair<std::vector<char>, std::vector<char>> binary_code;
-    int curr_line, max_line = __lines.size();
-    bool text_sec = true;
+    // std::string line;
+    // std::pair<std::vector<char>, std::vector<char>> binary_code;
+    // int curr_line, max_line = __lines.size();
+    // bool text_sec = true;
     // Aproveita as linhas salvas em memória para acelerar o processamento
-    for(curr_line = 0; curr_line < max_line; curr_line++){
-        line = __lines[curr_line];
-        if(line == "section .data"){
-            text_sec = false;
-            continue;
-        } else if(line == "section .text"){
-            text_sec = true;
-            continue;
-        }
+    // for(curr_line = 0; curr_line < max_line; curr_line++){
+    //     line = __lines[curr_line];
+    //     if(line == "section .data"){
+    //         text_sec = false;
+    //         continue;
+    //     } else if(line == "section .text"){
+    //         text_sec = true;
+    //         continue;
+    //     }
 
-        std::vector<Token> tokens_to_add = _filter_line(line);
-        std::vector<char>& curr_bin = text_sec ? binary_code.first : binary_code.second;
-        convert_token_to_bytes(curr_bin, tokens_to_add);
-        curr_line++;
-    }
+    //     std::vector<Token> tokens_to_add = _filter_line(line);
+    //     std::vector<char>& curr_bin = text_sec ? binary_code.first : binary_code.second;
+    //     convert_token_to_bytes(curr_bin, tokens_to_add);
+    //     curr_line++;
+    // }
     
 
        // Testing linker with hello world example
