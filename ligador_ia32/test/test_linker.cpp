@@ -30,19 +30,21 @@ void test_hello_world(){
 void test_bin(){
     // Testing linker with bin.s file
     // (Created with tradutor from bin.asm)
-    FILE* fd;
-    fd = fopen("bin_code.txt", "r");
-    if(fd == NULL){
-        printf("An error ocurred opening the file\n");
-        exit(0);
-    }
     std::vector<char> text;
-    char ch;
     // Copia todo o código em binario
-    while( fscanf(fd, "%x", &ch) != EOF ){
+    int d = 0;
+
+    std::string line;
+
+    FILE* file;
+    file = fopen("bin_code.txt", "r");
+    char ch;
+    while(fscanf(file, " %x", &ch) != EOF){
         text.push_back(ch);
     }
-    fclose(fd);
+    fclose(file);
+
+    printf("%d\n", d);
     printf("Finished reading text portion\n");
     std::vector<char> data = {
         '\x00', '\x00', '\x00', '\x00',

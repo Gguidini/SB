@@ -97,7 +97,25 @@ std::pair<std::vector<char>, std::vector<char>> Processor::run(){
         curr_line++;
     }
     
-    return binary_code;
+
+       // Testing linker with hello world example
+    std::vector<char> data = {
+        '\x48', '\x65', '\x6C', '\x6C', '\x6F',   // msg: db   'Hello, World!', 10
+        '\x2C', '\x20', '\x57', '\x6F', '\x72',
+        '\x6C', '\x64', '\x21', '\x0A'
+    };
+    std::vector<char> text = { 
+        '\xB8', '\x04', '\x00', '\x00', '\x00',   // mov eax, 4                   
+        '\xBB', '\x01', '\x00', '\x00', '\x00',   // mov ebx, 1                   
+        '\xB9', '\x00', '\xa0', '\x04', '\x08',   // mov ecx, msg                 
+        '\xBA', '\x0E', '\x00', '\x00', '\x00',   // mov edx, 14                  
+        '\xCD', '\x80',                           // int 0x80                     
+        '\xB8', '\x01', '\x00', '\x00', '\x00',   // mov eax, 1      
+        '\xBB', '\x00', '\x00', '\x00', '\x00',   // mov ebx, 0              
+        '\xCD', '\x80'                            // int 0x80                     
+    };
+    std::pair<std::vector<char>, std::vector<char>> binary = std::make_pair(text, data);
+    return binary;
 }
 
 std::vector<Token> Processor::_filter_line(std::string &line){
@@ -110,9 +128,9 @@ std::vector<Token> Processor::_filter_line(std::string &line){
 // Retorna o tamanho, em bytes, que Tokens ocupam em código máquina se size_only == true.
 // Default é size_only = false.
 // Retorno é sempre o tamanho em bytes de Tokens em código máquina
-int Processor::convert_token_to_bytes(std::vector<char> binary_code, std::vector<Token> &tokens, bool size_only = false){
+int Processor::convert_token_to_bytes(std::vector<char> binary_code, std::vector<Token> &tokens, bool size_only){
     // TODO implement this function
-
+    return 0;
 }
 
 // Faz uma passagem pelo arquivo descobrindo o valor de cada símbolo
