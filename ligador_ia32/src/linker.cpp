@@ -18,6 +18,8 @@ class Linker{
     Linker();
     Linker(std::pair<std::vector<char>, std::vector<char>> binary, std::string output_name);
 
+    std::string get_file_name();
+
     // Run
     bool run();
 };
@@ -99,6 +101,10 @@ bool Linker::run(){
     writer.save( __out_name );
 
     return true;
+}
+
+std::string Linker::get_file_name(){
+    return __out_name;
 }
 
 #endif

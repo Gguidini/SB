@@ -11,15 +11,15 @@ Thiago Veras Machado - 16/0146682
 
 # Compilando o projeto
 
-Assumindo que você esteja na pasta `ligador_ia32` (root do projeto), use o comando abaixo para compilar:
+Assumindo que você esteja na pasta `ligador_ia32` (root do projeto), use o comando abaixo para compilar (**lembre de colocar a path certa para o arquivo**):
 
 ```bash
-$ g++ -std=c++11 -o tradutor src/tradutor.cpp
+$ g++ -std=c++11 -I/path/to/dir/ligador_ia32/lib/elfio/ -o ligador_ia32 src/ligador_ia32.cpp
 ```
 
 E para executar o arquivo, utilize:
 ```bash
-$ ./tradutor assembly_file.asm
+$ ./ligador_ia32 assembly_file.s
 ```
 
-A saída gerada será um arquivo de mesmo nome que o da entrada, porém com extensão `.s`. 
+A saída gerada será um arquivo de mesmo nome que o da entrada, mas no formato elf.
