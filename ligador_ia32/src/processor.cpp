@@ -6,9 +6,10 @@
 #include <fstream>
 #include <vector>
 #include <map>
+#include <regex>
+
 // Local dependencies
-#include "../lib/opcodes.h"
-#include "../lib/utils.h"
+#include "linker.cpp"   // To use some defines
 
 // defines token symbols
 #define LABEL 0
@@ -30,10 +31,12 @@ class Processor {
     std::string __input_name;
     std::ifstream __file_pointer;       // Input file pointer
     std::vector<std::string> __lines;
+    std::map<std::string, long> __symbols;
     bool __done;
 
-    std::vector<Token> _filter_line(std::string&line, int lst_line = 0);    
-    void convert_token_to_bytes(std::vector<char> binary_code, std::vector<Token> &tokens);
+    std::vector<Token> _filter_line(std::string&line);    
+    int convert_token_to_bytes(std::vector<char> binary_code, std::vector<Token> &tokens, bool size_only = false);
+    void __count_symbols_addrs();
     
 public:
     // Constructors 
@@ -70,41 +73,73 @@ Processor::Processor(std::string input_name){
 
 std::pair<std::vector<char>, std::vector<char>> Processor::run(){
     
+    // Primeiramente calcula o valor dos símbolos
+    __count_symbols_addrs();
+    // Faz a tradução do código
     std::string line;
     std::pair<std::vector<char>, std::vector<char>> binary_code;
-    int curr_line = 0;
+    int curr_line, max_line = __lines.size();
+    bool text_sec = true;
+    // Aproveita as linhas salvas em memória para acelerar o processamento
+    for(curr_line = 0; curr_line < max_line; curr_line++){
+        line = __lines[curr_line];
+        if(line == "section .data"){
+            text_sec = false;
+            continue;
+        } else if(line == "section .text"){
+            text_sec = true;
+            continue;
+        }
 
-    while(getline(__file_pointer, line)){
-        if(line == "section .data") break;
-
-        std::vector<Token> tokens_to_add = _filter_line(line, curr_line);
-        convert_token_to_bytes(binary_code.first, tokens_to_add);
+        std::vector<Token> tokens_to_add = _filter_line(line);
+        std::vector<char>& curr_bin = text_sec ? binary_code.first : binary_code.second;
+        convert_token_to_bytes(curr_bin, tokens_to_add);
+        curr_line++;
     }
-
-    // TODO: Add our functions to binary code
     
-    while(getline(__file_pointer, line)){
-
-        std::vector<Token> tokens_to_add = _filter_line(line, curr_line);
-        convert_token_to_bytes(binary_code.second, tokens_to_add);
-    }
-
     return binary_code;
-
 }
 
-std::vector<Token> Processor::_filter_line(std::string &line, int lst_line){
-
+std::vector<Token> Processor::_filter_line(std::string &line){
     // TODO implement this function
 
     return std::vector<Token>();
 }
 
-void Processor::convert_token_to_bytes(std::vector<char> binary_code, std::vector<Token> &tokens){
-
+// Converte Tokens para codigo de maquina e os adiciona à binary_code se size_only == false.
+// Retorna o tamanho, em bytes, que Tokens ocupam em código máquina se size_only == true.
+// Default é size_only = false.
+// Retorno é sempre o tamanho em bytes de Tokens em código máquina
+int Processor::convert_token_to_bytes(std::vector<char> binary_code, std::vector<Token> &tokens, bool size_only = false){
     // TODO implement this function
 
 }
 
+// Faz uma passagem pelo arquivo descobrindo o valor de cada símbolo
+// E cria uma tabela de símbolos
+void Processor::__count_symbols_addrs() {
+    long text_curr_addrs = 0, data_curr_addrs = 0;
+    bool sec_text = true;
+    std::string line;
+    while(getline(__file_pointer, line)){
+        // Saves line in memory
+        __lines.push_back(line);
+        // Breaks line
+        std::vector<Token> tokens_to_add = _filter_line(line);
+        // Labels estão sempre no início das linhas
+        if(tokens_to_add[0].second == LABEL){
+            __symbols[tokens_to_add[0].first] = sec_text ? 
+            (text_curr_addrs + MY_TEXT_INIT_ADDRS) : 
+            (data_curr_addrs + MY_DATA_INIT_ADDRS);
+        }
+        // Counts address of line
+        if(sec_text){
+            text_curr_addrs += convert_token_to_bytes(std::vector<char>(), tokens_to_add, true);
+        } else {
+            data_curr_addrs += convert_token_to_bytes(std::vector<char>(), tokens_to_add, true);
+        }
 
+    }
+
+}
 #endif

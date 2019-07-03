@@ -1,4 +1,10 @@
+#ifndef LINKER_H
+#define LINKER_H
 #include <elfio/elfio.hpp>
+
+#define MY_OSABI 0
+#define MY_TEXT_INIT_ADDRS 0x08049000
+#define MY_DATA_INIT_ADDRS 0x0804a000
 
 class Linker{
 
@@ -37,7 +43,7 @@ bool Linker::run(){
     // You can't proceed without this function call!
     writer.create( ELFCLASS32, ELFDATA2LSB );
 
-    writer.set_os_abi( ELFOSABI_NONE );     // OS dependent
+    writer.set_os_abi( MY_OSABI );     // OS dependent
     writer.set_type( ET_EXEC );
     writer.set_machine( EM_386 );
 
@@ -51,8 +57,8 @@ bool Linker::run(){
     // Create a loadable segment
     ELFIO::segment* text_seg = writer.segments.add();
     text_seg->set_type( PT_LOAD );
-    text_seg->set_virtual_address( 0x08049000 );    // OS dependent
-    text_seg->set_physical_address( 0x08049000 );   // OS dependent
+    text_seg->set_virtual_address( MY_TEXT_INIT_ADDRS );    // OS dependent
+    text_seg->set_physical_address( MY_TEXT_INIT_ADDRS );   // OS dependent
     text_seg->set_flags( PF_X | PF_R );
     text_seg->set_align( 0x1000 );
     
@@ -70,10 +76,10 @@ bool Linker::run(){
     // Create a read/write segment
     ELFIO::segment* data_seg = writer.segments.add();
     data_seg->set_type( PT_LOAD );
-    data_seg->set_virtual_address( 0x0804a000 );    // OS dependent
-    data_seg->set_physical_address( 0x0804a000 );   // OS dependent
+    data_seg->set_virtual_address( MY_DATA_INIT_ADDRS );    // OS dependent
+    data_seg->set_physical_address( MY_DATA_INIT_ADDRS );   // OS dependent
     data_seg->set_flags( PF_W | PF_R );
-    data_seg->set_align( 0x10 );                    // OS dependent
+    data_seg->set_align( 0x10 );                   
 
     // Add code section into program segment
     data_seg->add_section_index( data_sec->get_index(), data_sec->get_addr_align() );
@@ -87,10 +93,12 @@ bool Linker::run(){
     note_writer.add_note( 0x01, "Never easier!", descr, sizeof( descr ) );
 
     // Setup entry point
-    writer.set_entry( 0x08049000 );          // OS dependent
+    writer.set_entry( MY_TEXT_INIT_ADDRS );          // OS dependent
 
     // Create ELF file
     writer.save( __out_name );
 
     return true;
 }
+
+#endif

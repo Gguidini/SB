@@ -1,7 +1,3 @@
-
-a.out:     file format elf32-i386
-
-
 Disassembly of section .text:
 
 08049000 <_start>:
